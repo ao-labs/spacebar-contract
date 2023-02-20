@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "description": "Spacebar's core smart contracts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "test:report-gas": "REPORT_GAS=true npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.ts"
   },
   "author": "",
   "license": "ISC",
