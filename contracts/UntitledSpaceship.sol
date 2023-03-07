@@ -2,13 +2,14 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract UntitledSpaceship is ERC721, AccessControl {
+contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     /* ============ Variables ============ */
 
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
@@ -100,12 +101,7 @@ contract UntitledSpaceship is ERC721, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, _signer);
         _grantRole(BURNER_ROLE, _burner);
-        for (uint256 i = 0; i < MAX_UNTITLED_SPACESHIP; ) {
-            _mint(msg.sender, i);
-            unchecked {
-                ++i;
-            }
-        }
+        _mintConsecutive(msg.sender, MAX_UNTITLED_SPACESHIP);
     }
 
     /* ============ External Functions ============ */
