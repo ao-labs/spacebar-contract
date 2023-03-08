@@ -13,9 +13,9 @@ contract ScoreNFT is ERC721, AccessControl {
 
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     uint256 public totalSupply;
+    bytes32[255] public categories; // SINGLE, MULTI, etc
 
     mapping(uint256 => Score) private tokenId2Score;
-    bytes32[255] public categories; // SINGLE, MULTI, etc
 
     /* ============ Structs ============ */
 
@@ -32,24 +32,29 @@ contract ScoreNFT is ERC721, AccessControl {
     }
 
     /* ============ Events ============ */
+
     event CategoriesUpdated(bytes32[] categories);
     event ScoreMinted(
         uint8 indexed categoryIndex,
-        uint88 indexed score,
-        address indexed player
+        uint88 score,
+        address indexed player,
+        uint256 indexed tokenId
+    );
+    event ScoreMintedByAdmin(
+        uint8 indexed categoryIndex,
+        uint88 score,
+        address indexed player,
+        uint256 indexed tokenId
     );
 
     /* ============ Errors ============ */
 
-    error AlreadyHaveAccess(address user, uint256 tokenId);
-    error AlreadyClaimedToken(uint256 tokenId);
-    error NotWithinExtensionPeriod(address user, uint256 tokenId);
     error InvalidSignature();
 
     /* ============ Constructor ============ */
 
     constructor(address signer, bytes32[] memory newCategories)
-        ERC721("Untitled Spaceship", "US")
+        ERC721("Score NFT", "SCORE")
     {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, signer);
@@ -77,10 +82,10 @@ contract ScoreNFT is ERC721, AccessControl {
         _checkSignature(digest, signature);
         _mint(msg.sender, totalSupply);
         tokenId2Score[totalSupply] = Score(categoryIndex, score, msg.sender);
+        emit ScoreMinted(categoryIndex, score, msg.sender, totalSupply);
         unchecked {
             ++totalSupply;
         }
-        emit ScoreMinted(categoryIndex, score, msg.sender);
     }
 
     function mintScoreByAdmin(
@@ -90,10 +95,10 @@ contract ScoreNFT is ERC721, AccessControl {
     ) external onlyRole(SIGNER_ROLE) {
         _mint(to, totalSupply);
         tokenId2Score[totalSupply] = Score(categoryIndex, score, to);
+        emit ScoreMintedByAdmin(categoryIndex, score, to, totalSupply);
         unchecked {
             ++totalSupply;
         }
-        emit ScoreMintedByAdmin(categoryIndex, score, to);
     }
 
     function updateCategories(bytes32[] memory newCategories)
@@ -107,6 +112,11 @@ contract ScoreNFT is ERC721, AccessControl {
             }
         }
         emit CategoriesUpdated(newCategories);
+    }
+
+    function burn(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, "only owner can burn");
+        _burn(tokenId);
     }
 
     /* ============ View Functions ============ */
