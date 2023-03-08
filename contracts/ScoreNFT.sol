@@ -83,6 +83,19 @@ contract ScoreNFT is ERC721, AccessControl {
         emit ScoreMinted(categoryIndex, score, msg.sender);
     }
 
+    function mintScoreByAdmin(
+        address to,
+        uint8 categoryIndex,
+        uint88 score
+    ) external onlyRole(SIGNER_ROLE) {
+        _mint(to, totalSupply);
+        tokenId2Score[totalSupply] = Score(categoryIndex, score, to);
+        unchecked {
+            ++totalSupply;
+        }
+        emit ScoreMintedByAdmin(categoryIndex, score, to);
+    }
+
     function updateCategories(bytes32[] memory newCategories)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
