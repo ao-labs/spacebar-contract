@@ -15,7 +15,7 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     uint16 public constant MAX_UNTITLED_SPACESHIP = 1000;
-    uint32 public constant ACCESS_PERIOD = 60 * 60 * 24 * 7; // 7Days
+    uint32 public constant ACCESS_PERIOD = 7 days;
 
     mapping(address => Access) private userAccessStatus;
     mapping(uint256 => address) private tokenId2UserAddress;
@@ -95,9 +95,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(address _signer, address _burner)
-        ERC721("Untitled Spaceship", "US")
-    {
+    constructor(
+        address _signer,
+        address _burner
+    ) ERC721("Untitled Spaceship", "US") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, _signer);
         _grantRole(BURNER_ROLE, _burner);
@@ -107,7 +108,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     /* ============ External Functions ============ */
 
     // @TODO may require signature check in the future
-    function grantTemporaryAccess(address user, uint256 tokenId)
+    function grantTemporaryAccess(
+        address user,
+        uint256 tokenId
+    )
         external
         onlyRole(SIGNER_ROLE)
         onlyUserWithoutAccess(user, tokenId)
@@ -122,7 +126,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         emit AccessGranted(user, tokenId);
     }
 
-    function claimTemporaryAccess(uint256 tokenId, Signature calldata signature)
+    function claimTemporaryAccess(
+        uint256 tokenId,
+        Signature calldata signature
+    )
         external
         onlyUserWithoutAccess(msg.sender, tokenId)
         onlyTokenWithoutAccess(tokenId)
@@ -147,10 +154,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         emit AccessClaimed(msg.sender, tokenId);
     }
 
-    function extendAccessPeriod(uint256 tokenId, Signature calldata signature)
-        external
-        onlyTokenWithinExtensionPeriod(msg.sender, tokenId)
-    {
+    function extendAccessPeriod(
+        uint256 tokenId,
+        Signature calldata signature
+    ) external onlyTokenWithinExtensionPeriod(msg.sender, tokenId) {
         bytes32 digest = keccak256(
             abi.encode("extendAccessPeriod", tokenId, msg.sender, address(this))
         );
@@ -163,7 +170,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         );
     }
 
-    function extendAccessPeriodByAdmin(address user, uint256 tokenId)
+    function extendAccessPeriodByAdmin(
+        address user,
+        uint256 tokenId
+    )
         external
         onlyRole(SIGNER_ROLE)
         onlyTokenWithinExtensionPeriod(user, tokenId)
@@ -183,39 +193,32 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     /* ============ View Functions ============ */
 
-    function getAccessStatusByUserAddress(address user)
-        external
-        view
-        returns (Access memory)
-    {
+    function getAccessStatusByUserAddress(
+        address user
+    ) external view returns (Access memory) {
         return userAccessStatus[user];
     }
 
-    function getAccessStatusByTokenId(uint256 tokenId)
-        external
-        view
-        returns (Access memory)
-    {
+    function getAccessStatusByTokenId(
+        uint256 tokenId
+    ) external view returns (Access memory) {
         return userAccessStatus[tokenId2UserAddress[tokenId]];
     }
 
     /* ============ ERC-165 ============ */
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
     /* ============ Internal Functions ============ */
 
-    function _checkSignature(bytes32 digest, Signature calldata signature)
-        internal
-        view
-    {
+    function _checkSignature(
+        bytes32 digest,
+        Signature calldata signature
+    ) internal view {
         address signer = ecrecover(
             digest,
             signature.v,

@@ -20,9 +20,9 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(address spaceFactory)
-        ERC1155("https://www.spacebar.xyz/parts/")
-    {
+    constructor(
+        address spaceFactory
+    ) ERC1155("https://www.spacebar.xyz/parts/") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SPACE_FACTORY, spaceFactory);
     }
@@ -31,10 +31,10 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
 
     // Space Factory generates a random part, and the info is encoded within the token id
     // Assumes that "reveal" feature does not exist. If it does, this architecture has to change
-    function mintParts(address to, uint256 id)
-        external
-        onlyRole(SPACE_FACTORY)
-    {
+    function mintParts(
+        address to,
+        uint256 id
+    ) external onlyRole(SPACE_FACTORY) {
         _mint(to, id, 1, "");
     }
 
@@ -64,12 +64,9 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
 
     /* ============ ERC-165 ============ */
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC1155, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC1155, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 

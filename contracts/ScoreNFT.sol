@@ -53,9 +53,10 @@ contract ScoreNFT is ERC721, AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(address signer, bytes32[] memory newCategories)
-        ERC721("Score NFT", "SCORE")
-    {
+    constructor(
+        address signer,
+        bytes32[] memory newCategories
+    ) ERC721("Score NFT", "SCORE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, signer);
         for (uint256 i = 0; i < newCategories.length; ) {
@@ -80,7 +81,7 @@ contract ScoreNFT is ERC721, AccessControl {
             abi.encode("mintScore", score, msg.sender, address(this))
         );
         _checkSignature(digest, signature);
-        _mint(msg.sender, totalSupply);
+        _safeMint(msg.sender, totalSupply);
         tokenId2Score[totalSupply] = Score(categoryIndex, score, msg.sender);
         emit ScoreMinted(categoryIndex, score, msg.sender, totalSupply);
         unchecked {
@@ -93,7 +94,7 @@ contract ScoreNFT is ERC721, AccessControl {
         uint8 categoryIndex,
         uint88 score
     ) external onlyRole(SIGNER_ROLE) {
-        _mint(to, totalSupply);
+        _safeMint(to, totalSupply);
         tokenId2Score[totalSupply] = Score(categoryIndex, score, to);
         emit ScoreMintedByAdmin(categoryIndex, score, to, totalSupply);
         unchecked {
@@ -101,10 +102,9 @@ contract ScoreNFT is ERC721, AccessControl {
         }
     }
 
-    function updateCategories(bytes32[] memory newCategories)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function updateCategories(
+        bytes32[] memory newCategories
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i = 0; i < newCategories.length; ) {
             categories[i] = newCategories[i];
             unchecked {
@@ -121,7 +121,9 @@ contract ScoreNFT is ERC721, AccessControl {
 
     /* ============ View Functions ============ */
 
-    function getScore(uint256 tokenId)
+    function getScore(
+        uint256 tokenId
+    )
         public
         view
         returns (
@@ -141,21 +143,18 @@ contract ScoreNFT is ERC721, AccessControl {
 
     /* ============ ERC-165 ============ */
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
     /* ============ Internal Functions ============ */
 
-    function _checkSignature(bytes32 digest, Signature calldata signature)
-        internal
-        view
-    {
+    function _checkSignature(
+        bytes32 digest,
+        Signature calldata signature
+    ) internal view {
         address signer = ecrecover(
             digest,
             signature.v,

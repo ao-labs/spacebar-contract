@@ -90,7 +90,7 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
             )
         );
         _checkSignature(digest, signature);
-        _mint(msg.sender, totalSupply);
+        _safeMint(msg.sender, totalSupply);
         tokenId2TokenType[totalSupply] = TokenType(categoryIndex, _burnAuth);
         emit BadgeMinted(categoryIndex, msg.sender, totalSupply);
         emit Issued(msg.sender, msg.sender, totalSupply, _burnAuth);
@@ -104,7 +104,7 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
         uint8 categoryIndex,
         BurnAuth _burnAuth
     ) external onlyRole(SIGNER_ROLE) {
-        _mint(to, totalSupply);
+        _safeMint(to, totalSupply);
         tokenId2TokenType[totalSupply] = TokenType(categoryIndex, _burnAuth);
         emit BadgeMintedByAdmin(categoryIndex, to, totalSupply);
         emit Issued(msg.sender, to, totalSupply, _burnAuth);
@@ -150,12 +150,9 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     /* ============ ERC-165 ============ */
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, AccessControl) returns (bool) {
         return
             interfaceId == type(IERC5484).interfaceId ||
             super.supportsInterface(interfaceId);
@@ -163,10 +160,10 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     /* ============ Internal Functions ============ */
 
-    function _checkSignature(bytes32 digest, Signature calldata signature)
-        internal
-        view
-    {
+    function _checkSignature(
+        bytes32 digest,
+        Signature calldata signature
+    ) internal view {
         address signer = ecrecover(
             digest,
             signature.v,
@@ -181,7 +178,7 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 tokenId, /* firstTokenId */
+        uint256 tokenId /* firstTokenId */,
         uint256 batchSize
     ) internal virtual override {
         if (from != address(0) && to != address(0)) {
