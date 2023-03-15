@@ -17,8 +17,8 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     uint16 public constant MAX_UNTITLED_SPACESHIP = 1000;
     uint32 public constant ACCESS_PERIOD = 7 days;
 
-    mapping(address => Access) private userAccessStatus;
-    mapping(uint256 => address) private tokenId2UserAddress;
+    mapping(address => Access) private _accesses;
+    mapping(uint256 => address) private _userAddresses;
 
     /* ============ Structs ============ */
 
@@ -60,9 +60,8 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     modifier onlyUserWithoutAccess(address user, uint256 tokenId) {
         if (
-            userAccessStatus[user].user == user &&
-            userAccessStatus[user].expirationDate - ACCESS_PERIOD >
-            block.timestamp
+            _accesses[user].user == user &&
+            _accesses[user].expirationDate - ACCESS_PERIOD > block.timestamp
         ) {
             revert AlreadyHaveAccess(user, tokenId);
         }
@@ -71,8 +70,7 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     modifier onlyTokenWithoutAccess(uint256 tokenId) {
         if (
-            userAccessStatus[tokenId2UserAddress[tokenId]].expirationDate -
-                ACCESS_PERIOD >
+            _accesses[_userAddresses[tokenId]].expirationDate - ACCESS_PERIOD >
             block.timestamp
         ) {
             revert AlreadyClaimedToken(tokenId);
@@ -82,10 +80,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     modifier onlyTokenWithinExtensionPeriod(address user, uint256 tokenId) {
         if (
-            userAccessStatus[user].user == user ||
-            userAccessStatus[tokenId2UserAddress[tokenId]].expirationDate <
+            _accesses[user].user == user ||
+            _accesses[_userAddresses[tokenId]].expirationDate <
             block.timestamp ||
-            userAccessStatus[tokenId2UserAddress[tokenId]].expirationDate >
+            _accesses[_userAddresses[tokenId]].expirationDate >
             block.timestamp + ACCESS_PERIOD
         ) {
             revert NotWithinExtensionPeriod(user, tokenId);
@@ -107,6 +105,8 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     /* ============ External Functions ============ */
 
+    // @TODO add parameter checks
+
     // @TODO may require signature check in the future
     function grantTemporaryAccess(
         address user,
@@ -117,12 +117,12 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         onlyUserWithoutAccess(user, tokenId)
         onlyTokenWithoutAccess(tokenId)
     {
-        userAccessStatus[user] = Access(
+        _accesses[user] = Access(
             tokenId,
             user,
             uint64(block.timestamp + ACCESS_PERIOD)
         );
-        tokenId2UserAddress[tokenId] = user;
+        _userAddresses[tokenId] = user;
         emit AccessGranted(user, tokenId);
     }
 
@@ -145,12 +145,12 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         );
         _checkSignature(digest, signature);
 
-        userAccessStatus[msg.sender] = Access(
+        _accesses[msg.sender] = Access(
             tokenId,
             msg.sender,
             uint64(block.timestamp + ACCESS_PERIOD)
         );
-        tokenId2UserAddress[tokenId] = msg.sender;
+        _userAddresses[tokenId] = msg.sender;
         emit AccessClaimed(msg.sender, tokenId);
     }
 
@@ -162,11 +162,11 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
             abi.encode("extendAccessPeriod", tokenId, msg.sender, address(this))
         );
         _checkSignature(digest, signature);
-        userAccessStatus[msg.sender].expirationDate += ACCESS_PERIOD;
+        _accesses[msg.sender].expirationDate += ACCESS_PERIOD;
         emit AccessExtended(
             msg.sender,
             tokenId,
-            userAccessStatus[msg.sender].expirationDate
+            _accesses[msg.sender].expirationDate
         );
     }
 
@@ -178,11 +178,11 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         onlyRole(SIGNER_ROLE)
         onlyTokenWithinExtensionPeriod(user, tokenId)
     {
-        userAccessStatus[user].expirationDate += ACCESS_PERIOD;
+        _accesses[user].expirationDate += ACCESS_PERIOD;
         emit AccessExtendedByAdmin(
             user,
             tokenId,
-            userAccessStatus[user].expirationDate
+            _accesses[user].expirationDate
         );
     }
 
@@ -196,13 +196,13 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     function getAccessStatusByUserAddress(
         address user
     ) external view returns (Access memory) {
-        return userAccessStatus[user];
+        return _accesses[user];
     }
 
     function getAccessStatusByTokenId(
         uint256 tokenId
     ) external view returns (Access memory) {
-        return userAccessStatus[tokenId2UserAddress[tokenId]];
+        return _accesses[_userAddresses[tokenId]];
     }
 
     /* ============ ERC-165 ============ */

@@ -13,14 +13,13 @@ contract ScoreNFT is ERC721, AccessControl {
 
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     uint256 public totalSupply;
-    bytes32[255] public categories; // SINGLE, MULTI, etc
 
-    mapping(uint256 => Score) private tokenId2Score;
+    mapping(uint256 => Score) private _scores;
 
     /* ============ Structs ============ */
 
     struct Score {
-        uint8 categoryIndex;
+        uint8 category;
         uint88 score; // MAX SCORE = 309,485,009,821,345,068,724,781,055
         address player;
     }
@@ -35,13 +34,13 @@ contract ScoreNFT is ERC721, AccessControl {
 
     event CategoriesUpdated(bytes32[] categories);
     event ScoreMinted(
-        uint8 indexed categoryIndex,
+        uint8 indexed category,
         uint88 score,
         address indexed player,
         uint256 indexed tokenId
     );
     event ScoreMintedByAdmin(
-        uint8 indexed categoryIndex,
+        uint8 indexed category,
         uint88 score,
         address indexed player,
         uint256 indexed tokenId
@@ -53,26 +52,18 @@ contract ScoreNFT is ERC721, AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(
-        address signer,
-        bytes32[] memory newCategories
-    ) ERC721("Score NFT", "SCORE") {
+    constructor(address signer) ERC721("Score NFT", "SCORE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, signer);
-        for (uint256 i = 0; i < newCategories.length; ) {
-            categories[i] = newCategories[i];
-            unchecked {
-                ++i;
-            }
-        }
-        emit CategoriesUpdated(newCategories);
     }
 
     /* ============ External Functions ============ */
 
+    // @TODO add parameter checks
+
     // @TODO might want to implement custom token URI (not by increasing integer)
     function mintScore(
-        uint8 categoryIndex,
+        uint8 category,
         uint88 score,
         Signature calldata signature
     ) external {
@@ -82,8 +73,8 @@ contract ScoreNFT is ERC721, AccessControl {
         );
         _checkSignature(digest, signature);
         _safeMint(msg.sender, totalSupply);
-        tokenId2Score[totalSupply] = Score(categoryIndex, score, msg.sender);
-        emit ScoreMinted(categoryIndex, score, msg.sender, totalSupply);
+        _scores[totalSupply] = Score(category, score, msg.sender);
+        emit ScoreMinted(category, score, msg.sender, totalSupply);
         unchecked {
             ++totalSupply;
         }
@@ -91,27 +82,15 @@ contract ScoreNFT is ERC721, AccessControl {
 
     function mintScoreByAdmin(
         address to,
-        uint8 categoryIndex,
+        uint8 category,
         uint88 score
     ) external onlyRole(SIGNER_ROLE) {
         _safeMint(to, totalSupply);
-        tokenId2Score[totalSupply] = Score(categoryIndex, score, to);
-        emit ScoreMintedByAdmin(categoryIndex, score, to, totalSupply);
+        _scores[totalSupply] = Score(category, score, to);
+        emit ScoreMintedByAdmin(category, score, to, totalSupply);
         unchecked {
             ++totalSupply;
         }
-    }
-
-    function updateCategories(
-        bytes32[] memory newCategories
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < newCategories.length; ) {
-            categories[i] = newCategories[i];
-            unchecked {
-                ++i;
-            }
-        }
-        emit CategoriesUpdated(newCategories);
     }
 
     function burn(uint256 tokenId) external {
@@ -126,17 +105,12 @@ contract ScoreNFT is ERC721, AccessControl {
     )
         public
         view
-        returns (
-            uint8 categoryIndex,
-            uint88 score,
-            address player,
-            address owner
-        )
+        returns (uint8 category, uint88 score, address player, address owner)
     {
         return (
-            tokenId2Score[tokenId].categoryIndex,
-            tokenId2Score[tokenId].score,
-            tokenId2Score[tokenId].player,
+            _scores[tokenId].category,
+            _scores[tokenId].score,
+            _scores[tokenId].player,
             ownerOf(tokenId)
         );
     }

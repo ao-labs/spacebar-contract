@@ -29,6 +29,8 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
 
     /* ============ External Functions ============ */
 
+    // @TODO add parameter checks
+
     // Space Factory generates a random part, and the info is encoded within the token id
     // Assumes that "reveal" feature does not exist. If it does, this architecture has to change
     function mintParts(

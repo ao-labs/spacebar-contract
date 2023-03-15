@@ -15,14 +15,13 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     uint256 public totalSupply;
-    bytes32[255] public categories; // ELITE, CREATIVE, etc
 
-    mapping(uint256 => TokenType) private tokenId2TokenType;
+    mapping(uint256 => TokenType) private _tokenTypes;
 
     /* ============ Structs ============ */
 
     struct TokenType {
-        uint8 categoryIndex;
+        uint8 category;
         BurnAuth burnAuth;
     }
 
@@ -34,14 +33,13 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     /* ============ Events ============ */
 
-    event CategoriesUpdated(bytes32[] categories);
     event BadgeMinted(
-        uint8 indexed categoryIndex,
+        uint8 indexed category,
         address indexed to,
         uint256 indexed tokenId
     );
     event BadgeMintedByAdmin(
-        uint8 indexed categoryIndex,
+        uint8 indexed category,
         address indexed to,
         uint256 indexed tokenId
     );
@@ -54,28 +52,19 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     /* ============ Constructor ============ */
 
-    constructor(
-        address signer,
-        address burner,
-        bytes32[] memory newCategories
-    ) ERC721("Badge SBT", "BADGE") {
+    constructor(address signer, address burner) ERC721("Badge SBT", "BADGE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, signer);
         _grantRole(BURNER_ROLE, burner);
-        for (uint256 i = 0; i < newCategories.length; ) {
-            categories[i] = newCategories[i];
-            unchecked {
-                ++i;
-            }
-        }
-        emit CategoriesUpdated(newCategories);
     }
 
     /* ============ External Functions ============ */
 
+    // @TODO add parameter checks
+
     // @TODO might want to implement custom token URI (not by increasing integer)
     function mintBadge(
-        uint8 categoryIndex,
+        uint8 category,
         BurnAuth _burnAuth,
         Signature calldata signature
     ) external {
@@ -83,7 +72,7 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
         bytes32 digest = keccak256(
             abi.encode(
                 "mintBadge",
-                categoryIndex,
+                category,
                 _burnAuth,
                 msg.sender,
                 address(this)
@@ -91,8 +80,8 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
         );
         _checkSignature(digest, signature);
         _safeMint(msg.sender, totalSupply);
-        tokenId2TokenType[totalSupply] = TokenType(categoryIndex, _burnAuth);
-        emit BadgeMinted(categoryIndex, msg.sender, totalSupply);
+        _tokenTypes[totalSupply] = TokenType(category, _burnAuth);
+        emit BadgeMinted(category, msg.sender, totalSupply);
         emit Issued(msg.sender, msg.sender, totalSupply, _burnAuth);
         unchecked {
             ++totalSupply;
@@ -101,12 +90,12 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     function mintBadgeByAdmin(
         address to,
-        uint8 categoryIndex,
+        uint8 category,
         BurnAuth _burnAuth
     ) external onlyRole(SIGNER_ROLE) {
         _safeMint(to, totalSupply);
-        tokenId2TokenType[totalSupply] = TokenType(categoryIndex, _burnAuth);
-        emit BadgeMintedByAdmin(categoryIndex, to, totalSupply);
+        _tokenTypes[totalSupply] = TokenType(category, _burnAuth);
+        emit BadgeMintedByAdmin(category, to, totalSupply);
         emit Issued(msg.sender, to, totalSupply, _burnAuth);
         unchecked {
             ++totalSupply;
@@ -114,7 +103,7 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
     }
 
     function burn(uint256 tokenId) external {
-        BurnAuth auth = tokenId2TokenType[tokenId].burnAuth;
+        BurnAuth auth = _tokenTypes[tokenId].burnAuth;
         if (auth == BurnAuth.IssuerOnly && !hasRole(BURNER_ROLE, msg.sender)) {
             revert CanNotBurn(msg.sender, auth, tokenId);
         }
@@ -140,12 +129,12 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     function getCategory(uint256 tokenId) external view returns (uint8) {
         require(_exists(tokenId), "ERC721: invalid token ID");
-        return tokenId2TokenType[tokenId].categoryIndex;
+        return _tokenTypes[tokenId].category;
     }
 
     function burnAuth(uint256 tokenId) external view returns (BurnAuth) {
         require(_exists(tokenId), "ERC721: invalid token ID");
-        return tokenId2TokenType[tokenId].burnAuth;
+        return _tokenTypes[tokenId].burnAuth;
     }
 
     /* ============ ERC-165 ============ */
