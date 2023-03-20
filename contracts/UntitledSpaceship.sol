@@ -154,6 +154,7 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         emit AccessClaimed(msg.sender, tokenId);
     }
 
+    // @TODO is there any chance of $AIR spending?
     function extendAccessPeriod(
         uint256 tokenId,
         Signature calldata signature

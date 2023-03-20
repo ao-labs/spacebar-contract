@@ -61,6 +61,7 @@ contract ScoreNFT is ERC721, AccessControl {
 
     // @TODO add parameter checks
 
+    // @TODO move this to SPACE FACTORY
     // @TODO might want to implement custom token URI (not by increasing integer)
     function mintScore(
         uint8 category,
