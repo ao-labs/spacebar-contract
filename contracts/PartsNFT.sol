@@ -16,6 +16,7 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
 
     /* ============ Errors ============ */
 
+    error ExceedMaximumTokenId(uint256 id);
     error NotEnoughBalance(uint256 id, uint256 currentBalance);
 
     /* ============ Constructor ============ */
@@ -37,6 +38,9 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
         address to,
         uint256 id
     ) external onlyRole(SPACE_FACTORY) {
+        if (id > type(uint24).max) {
+            revert ExceedMaximumTokenId(id);
+        }
         _mint(to, id, 1, "");
     }
 
@@ -45,6 +49,14 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
         uint256[] calldata ids,
         uint256[] calldata amounts
     ) external onlyRole(SPACE_FACTORY) {
+        for (uint i = 0; i < ids.length; ) {
+            if (ids[i] > type(uint24).max) {
+                revert ExceedMaximumTokenId(ids[i]);
+            }
+            unchecked {
+                ++i;
+            }
+        }
         _mintBatch(to, ids, amounts, "");
     }
 
