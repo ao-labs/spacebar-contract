@@ -4,20 +4,16 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IPartsNFT.sol";
 
-contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
+contract Parts is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
     /* ============ Variables ============ */
 
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
 
-    /* ============ Events ============ */
-
-    event PartsConsumed(address indexed from, uint256[] ids, uint256[] amounts);
-
     /* ============ Errors ============ */
 
     error ExceedMaximumTokenId(uint256 id);
-    error NotEnoughBalance(uint256 id, uint256 currentBalance);
 
     /* ============ Constructor ============ */
 
@@ -33,7 +29,6 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
     // @TODO add parameter checks
 
     // Space Factory generates a random part, and the info is encoded within the token id
-    // Assumes that "reveal" feature does not exist. If it does, this architecture has to change
     function mintParts(
         address to,
         uint256 id
@@ -61,13 +56,20 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl {
     }
 
     // This is called from Space Factory when creating new ultimate spaceship or updating it
-    function consumeParts(
+    function burnParts(
+        address from,
+        uint256 id,
+        uint256 amount
+    ) external onlyRole(SPACE_FACTORY) {
+        _burn(from, id, amount);
+    }
+
+    function batchBurnParts(
         address from,
         uint256[] calldata ids,
         uint256[] calldata amounts
     ) external onlyRole(SPACE_FACTORY) {
         _burnBatch(from, ids, amounts);
-        emit PartsConsumed(from, ids, amounts);
     }
 
     /* ============ View Functions ============ */

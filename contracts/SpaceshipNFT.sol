@@ -4,12 +4,13 @@ pragma solidity ^0.8.17;
 import "./interfaces/IERC4906.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/ISpaceshipNFT.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
+contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
     /* ============ Variables ============ */
 
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
@@ -28,18 +29,17 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
 
     /* ============ Events ============ */
 
-    event SpaceshipMinted(
+    event MintSpaceship(
         address indexed to,
         uint indexed id,
         uint24[] parts,
         bytes32 nickname
     );
 
-    event SpaceshipUpdated(uint indexed id, uint24[] parts, bytes32 nickname);
+    event UpdateSpaceship(uint indexed id, uint24[] parts, bytes32 nickname);
 
     /* ============ Errors ============ */
 
-    error InvalidSignature();
     error InvalidParts();
 
     /* ============ Modifiers ============ */
@@ -82,7 +82,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
         _safeMint(to, totalSupply);
         _traits[totalSupply].parts = parts;
         _traits[totalSupply].nickname = nickname;
-        emit SpaceshipMinted(to, totalSupply, parts, nickname);
+        emit MintSpaceship(to, totalSupply, parts, nickname);
         unchecked {
             ++totalSupply;
         }
@@ -93,7 +93,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
         uint24[] calldata parts
     ) external onlyRole(SPACE_FACTORY) onlyValidPartsList(parts) {
         _traits[tokenId].parts = parts;
-        emit SpaceshipUpdated(tokenId, parts, "");
+        emit UpdateSpaceship(tokenId, parts, "");
         emit MetadataUpdate(tokenId);
     }
 
@@ -102,7 +102,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
         bytes32 nickname
     ) external onlyRole(SPACE_FACTORY) {
         _traits[tokenId].nickname = nickname;
-        emit SpaceshipUpdated(tokenId, new uint24[](0), nickname);
+        emit UpdateSpaceship(tokenId, new uint24[](0), nickname);
         emit MetadataUpdate(tokenId);
     }
 
@@ -113,11 +113,11 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
 
     /* ============ View Functions ============ */
 
-    function getParts(uint256 tokenId) public view returns (uint24[] memory) {
+    function getParts(uint256 tokenId) external view returns (uint24[] memory) {
         return (_traits[tokenId].parts);
     }
 
-    function getNickname(uint256 tokenId) public view returns (bytes32) {
+    function getNickname(uint256 tokenId) external view returns (bytes32) {
         return (_traits[tokenId].nickname);
     }
 
@@ -125,7 +125,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721, AccessControl) returns (bool) {
+    ) public view override(ERC721, AccessControl, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 

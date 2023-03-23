@@ -3,15 +3,16 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IScoreNFT.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract ScoreNFT is ERC721, AccessControl {
+contract ScoreNFT is ERC721, AccessControl, IScoreNFT {
     /* ============ Variables ============ */
 
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
     uint256 public totalSupply;
 
     mapping(uint256 => Score) private _scores;
@@ -24,71 +25,36 @@ contract ScoreNFT is ERC721, AccessControl {
         address player;
     }
 
-    struct Signature {
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-    }
-
     /* ============ Events ============ */
 
-    event CategoriesUpdated(bytes32[] categories);
-    event ScoreMinted(
+    event MintScore(
         uint8 indexed category,
         uint88 score,
         address indexed player,
         uint256 indexed tokenId
     );
-    event ScoreMintedByAdmin(
-        uint8 indexed category,
-        uint88 score,
-        address indexed player,
-        uint256 indexed tokenId
-    );
-
-    /* ============ Errors ============ */
-
-    error InvalidSignature();
 
     /* ============ Constructor ============ */
 
-    constructor(address signer) ERC721("Score NFT", "SCORE") {
+    constructor(address spaceFactory) ERC721("Score NFT", "SCORE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, signer);
+        _grantRole(SPACE_FACTORY, spaceFactory);
     }
 
     /* ============ External Functions ============ */
 
     // @TODO add parameter checks
 
-    // @TODO move this to SPACE FACTORY
+    // @TODO this might has to go to Sp
     // @TODO might want to implement custom token URI (not by increasing integer)
     function mintScore(
-        uint8 category,
-        uint88 score,
-        Signature calldata signature
-    ) external {
-        // @TODO format of digest may change in the future
-        bytes32 digest = keccak256(
-            abi.encode("mintScore", score, msg.sender, address(this))
-        );
-        _checkSignature(digest, signature);
-        _safeMint(msg.sender, totalSupply);
-        _scores[totalSupply] = Score(category, score, msg.sender);
-        emit ScoreMinted(category, score, msg.sender, totalSupply);
-        unchecked {
-            ++totalSupply;
-        }
-    }
-
-    function mintScoreByAdmin(
         address to,
         uint8 category,
         uint88 score
-    ) external onlyRole(SIGNER_ROLE) {
+    ) external onlyRole(SPACE_FACTORY) {
         _safeMint(to, totalSupply);
         _scores[totalSupply] = Score(category, score, to);
-        emit ScoreMintedByAdmin(category, score, to, totalSupply);
+        emit MintScore(category, score, to, totalSupply);
         unchecked {
             ++totalSupply;
         }
@@ -125,21 +91,6 @@ contract ScoreNFT is ERC721, AccessControl {
     }
 
     /* ============ Internal Functions ============ */
-
-    function _checkSignature(
-        bytes32 digest,
-        Signature calldata signature
-    ) internal view {
-        address signer = ecrecover(
-            digest,
-            signature.v,
-            signature.r,
-            signature.s
-        );
-        if (!hasRole(SIGNER_ROLE, signer)) {
-            revert InvalidSignature();
-        }
-    }
 
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "./interfaces/IERC5484.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IBadgeSBT.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract BadgeSBT is ERC721, AccessControl, IERC5484 {
+contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
     /* ============ Variables ============ */
 
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     uint256 public totalSupply;
 
@@ -25,20 +25,9 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
         BurnAuth burnAuth;
     }
 
-    struct Signature {
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-    }
-
     /* ============ Events ============ */
 
-    event BadgeMinted(
-        uint8 indexed category,
-        address indexed to,
-        uint256 indexed tokenId
-    );
-    event BadgeMintedByAdmin(
+    event MintBadge(
         uint8 indexed category,
         address indexed to,
         uint256 indexed tokenId
@@ -46,56 +35,32 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
 
     /* ============ Errors ============ */
 
-    error InvalidSignature();
     error CanNotTransfer();
     error CanNotBurn(address burner, BurnAuth burnAuth, uint256 tokenId);
 
     /* ============ Constructor ============ */
 
-    constructor(address signer, address burner) ERC721("Badge SBT", "BADGE") {
+    constructor(
+        address spaceFactory,
+        address burner
+    ) ERC721("Badge SBT", "BADGE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, signer);
+        _grantRole(SPACE_FACTORY, spaceFactory);
         _grantRole(BURNER_ROLE, burner);
     }
 
     /* ============ External Functions ============ */
 
     // @TODO add parameter checks
-
     // @TODO might want to implement custom token URI (not by increasing integer)
     function mintBadge(
-        uint8 category,
-        BurnAuth _burnAuth,
-        Signature calldata signature
-    ) external {
-        // @TODO format of digest may change in the future
-        bytes32 digest = keccak256(
-            abi.encode(
-                "mintBadge",
-                category,
-                _burnAuth,
-                msg.sender,
-                address(this)
-            )
-        );
-        _checkSignature(digest, signature);
-        _safeMint(msg.sender, totalSupply);
-        _tokenTypes[totalSupply] = TokenType(category, _burnAuth);
-        emit BadgeMinted(category, msg.sender, totalSupply);
-        emit Issued(msg.sender, msg.sender, totalSupply, _burnAuth);
-        unchecked {
-            ++totalSupply;
-        }
-    }
-
-    function mintBadgeByAdmin(
         address to,
         uint8 category,
         BurnAuth _burnAuth
-    ) external onlyRole(SIGNER_ROLE) {
+    ) external onlyRole(SPACE_FACTORY) {
         _safeMint(to, totalSupply);
         _tokenTypes[totalSupply] = TokenType(category, _burnAuth);
-        emit BadgeMintedByAdmin(category, to, totalSupply);
+        emit MintBadge(category, to, totalSupply);
         emit Issued(msg.sender, to, totalSupply, _burnAuth);
         unchecked {
             ++totalSupply;
@@ -148,21 +113,6 @@ contract BadgeSBT is ERC721, AccessControl, IERC5484 {
     }
 
     /* ============ Internal Functions ============ */
-
-    function _checkSignature(
-        bytes32 digest,
-        Signature calldata signature
-    ) internal view {
-        address signer = ecrecover(
-            digest,
-            signature.v,
-            signature.r,
-            signature.s
-        );
-        if (!hasRole(SIGNER_ROLE, signer)) {
-            revert InvalidSignature();
-        }
-    }
 
     function _beforeTokenTransfer(
         address from,
