@@ -4,17 +4,21 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./interfaces/IBaseSpaceshipNFT.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract UntitledSpaceship is ERC721Consecutive, AccessControl {
+contract BaseSpaceshipNFT is
+    ERC721Consecutive,
+    AccessControl,
+    IBaseSpaceshipNFT
+{
     /* ============ Variables ============ */
 
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    uint16 public constant MAX_UNTITLED_SPACESHIP = 1000;
+    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
+    uint16 public constant MAXIMUM = 1000;
     uint32 public constant ACCESS_PERIOD = 7 days;
 
     mapping(address => Access) private _accesses;
@@ -28,22 +32,10 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
         uint64 expirationDate;
     }
 
-    struct Signature {
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-    }
-
     /* ============ Events ============ */
 
-    event AccessGranted(address indexed user, uint256 indexed tokenId);
-    event AccessClaimed(address indexed user, uint256 indexed tokenId);
-    event AccessExtended(
-        address indexed user,
-        uint256 indexed tokenId,
-        uint64 expirationDate
-    );
-    event AccessExtendedByAdmin(
+    event GrantAccess(address indexed user, uint256 indexed tokenId);
+    event ExtendAccess(
         address indexed user,
         uint256 indexed tokenId,
         uint64 expirationDate
@@ -54,7 +46,6 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
     error AlreadyHaveAccess(address user, uint256 tokenId);
     error AlreadyClaimedToken(uint256 tokenId);
     error NotWithinExtensionPeriod(address user, uint256 tokenId);
-    error InvalidSignature();
 
     /* ============ Modifiers ============ */
 
@@ -93,27 +84,21 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(
-        address _signer,
-        address _burner
-    ) ERC721("Untitled Spaceship", "US") {
+    constructor(address spaceFactory) ERC721("Base Spaceship", "BASE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, _signer);
-        _grantRole(BURNER_ROLE, _burner);
-        _mintConsecutive(msg.sender, MAX_UNTITLED_SPACESHIP);
+        _grantRole(SPACE_FACTORY, spaceFactory);
+        _mintConsecutive(msg.sender, MAXIMUM);
     }
 
     /* ============ External Functions ============ */
 
     // @TODO add parameter checks
-
-    // @TODO may require signature check in the future
-    function grantTemporaryAccess(
+    function grantAccess(
         address user,
         uint256 tokenId
     )
         external
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SPACE_FACTORY)
         onlyUserWithoutAccess(user, tokenId)
         onlyTokenWithoutAccess(tokenId)
     {
@@ -123,72 +108,23 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
             uint64(block.timestamp + ACCESS_PERIOD)
         );
         _userAddresses[tokenId] = user;
-        emit AccessGranted(user, tokenId);
+        emit GrantAccess(user, tokenId);
     }
 
-    function claimTemporaryAccess(
-        uint256 tokenId,
-        Signature calldata signature
-    )
-        external
-        onlyUserWithoutAccess(msg.sender, tokenId)
-        onlyTokenWithoutAccess(tokenId)
-    {
-        // @TODO format of digest may change in the future
-        bytes32 digest = keccak256(
-            abi.encode(
-                "claimTemporaryAccess",
-                tokenId,
-                msg.sender,
-                address(this)
-            )
-        );
-        _checkSignature(digest, signature);
-
-        _accesses[msg.sender] = Access(
-            tokenId,
-            msg.sender,
-            uint64(block.timestamp + ACCESS_PERIOD)
-        );
-        _userAddresses[tokenId] = msg.sender;
-        emit AccessClaimed(msg.sender, tokenId);
-    }
-
-    // @TODO is there any chance of $AIR spending?
-    function extendAccessPeriod(
-        uint256 tokenId,
-        Signature calldata signature
-    ) external onlyTokenWithinExtensionPeriod(msg.sender, tokenId) {
-        bytes32 digest = keccak256(
-            abi.encode("extendAccessPeriod", tokenId, msg.sender, address(this))
-        );
-        _checkSignature(digest, signature);
-        _accesses[msg.sender].expirationDate += ACCESS_PERIOD;
-        emit AccessExtended(
-            msg.sender,
-            tokenId,
-            _accesses[msg.sender].expirationDate
-        );
-    }
-
-    function extendAccessPeriodByAdmin(
+    function extendAccess(
         address user,
         uint256 tokenId
     )
         external
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SPACE_FACTORY)
         onlyTokenWithinExtensionPeriod(user, tokenId)
     {
         _accesses[user].expirationDate += ACCESS_PERIOD;
-        emit AccessExtendedByAdmin(
-            user,
-            tokenId,
-            _accesses[user].expirationDate
-        );
+        emit ExtendAccess(user, tokenId, _accesses[user].expirationDate);
     }
 
     /// @notice Untitled spaceship is burned to create an ultimate spaceship
-    function burn(uint256 tokenId) external onlyRole(BURNER_ROLE) {
+    function burn(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
         _burn(tokenId);
     }
 
@@ -216,23 +152,8 @@ contract UntitledSpaceship is ERC721Consecutive, AccessControl {
 
     /* ============ Internal Functions ============ */
 
-    function _checkSignature(
-        bytes32 digest,
-        Signature calldata signature
-    ) internal view {
-        address signer = ecrecover(
-            digest,
-            signature.v,
-            signature.r,
-            signature.s
-        );
-        if (!hasRole(SIGNER_ROLE, signer)) {
-            revert InvalidSignature();
-        }
-    }
-
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
-        return "https://www.spacebar.xyz/untitled/";
+        return "https://www.spacebar.xyz/base/";
     }
 }
