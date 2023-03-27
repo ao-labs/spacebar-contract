@@ -126,7 +126,9 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC721, AccessControl, IERC165) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        return
+            interfaceId == bytes4(0x49064906) || //IERC4906
+            super.supportsInterface(interfaceId);
     }
 
     // @TODO URI may change in the future
