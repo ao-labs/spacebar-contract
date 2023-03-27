@@ -18,9 +18,9 @@ contract SpaceFactory is AccessControl {
     /* ============ Variables ============ */
 
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
-    // bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     mapping(uint8 => uint24) numberPerPartType;
+    mapping(address => uint) private baseSpaceshipUserMap;
 
     uint baseSpaceshipRentalFee;
     uint baseSpaceshipExtensionFee;
@@ -42,6 +42,7 @@ contract SpaceFactory is AccessControl {
     uint8 constant MAX_PART_TYPE = 16;
     uint24 constant MAX_PART_NUMBER = 777215;
 
+    uint64 baseSpaceshipAccessPeriod;
     uint8 public numberOfPartTypes;
 
     /* ============ Structs ============ */
@@ -54,6 +55,7 @@ contract SpaceFactory is AccessControl {
 
     /* ============ Events ============ */
 
+    event SetBaseSpaceshipAccessPeriod(uint period);
     event SetBaseSpaceshipNFTAddress(IBaseSpaceshipNFT indexed newAddress);
     event SetSpaceshipNFTAddress(ISpaceshipNFT indexed newAddress);
     event SetPartsNFTAddress(IPartsNFT indexed newAddress);
@@ -74,6 +76,10 @@ contract SpaceFactory is AccessControl {
 
     /* ============ Errors ============ */
 
+    error UnavailableBaseSpaceship(uint256 tokenId, address currentUser);
+    error AlreadyUserOfBaseSpaceship();
+    error NotWithinExtensionPeriod(uint256 tokenId, uint256 currentExpires);
+    error NotUserOfBaseSpaceship(uint256 tokenId, address currentUser);
     error InvalidSignature();
     error InvalidListLength();
     error InvalidTypeOrder();
@@ -105,6 +111,8 @@ contract SpaceFactory is AccessControl {
     constructor(address _signer) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SIGNER_ROLE, _signer);
+        baseSpaceshipAccessPeriod = 7 days;
+        emit SetBaseSpaceshipAccessPeriod(baseSpaceshipAccessPeriod);
     }
 
     /* ============ External Functions ============ */
@@ -125,7 +133,7 @@ contract SpaceFactory is AccessControl {
             )
         );
         _checkSignature(digest, signature);
-        baseSpaceshipNFT.grantAccess(msg.sender, tokenId);
+        _rentBaseSpaceship(tokenId, msg.sender);
     }
 
     // @TODO should admin functions also provide user's signature?
@@ -138,7 +146,7 @@ contract SpaceFactory is AccessControl {
         onlyRole(SIGNER_ROLE)
         collectFee(user, baseSpaceshipRentalFee)
     {
-        baseSpaceshipNFT.grantAccess(msg.sender, tokenId);
+        _rentBaseSpaceship(tokenId, user);
     }
 
     function extendBaseSpaceship(
@@ -154,7 +162,7 @@ contract SpaceFactory is AccessControl {
             )
         );
         _checkSignature(digest, signature);
-        baseSpaceshipNFT.extendAccess(msg.sender, tokenId);
+        _extendBaseSpaceshipAccess(tokenId, msg.sender);
     }
 
     function extendBaseSpaceshipByAdmin(
@@ -166,7 +174,7 @@ contract SpaceFactory is AccessControl {
         onlyRole(SIGNER_ROLE)
         collectFee(user, baseSpaceshipExtensionFee)
     {
-        baseSpaceshipNFT.extendAccess(user, tokenId);
+        _extendBaseSpaceshipAccess(tokenId, user);
     }
 
     function mintRandomParts(
@@ -209,18 +217,26 @@ contract SpaceFactory is AccessControl {
     }
 
     function mintNewSpaceship(
+        uint256 baseSpaceshipTokenId,
         bytes32 nickname,
         uint24[] calldata parts,
         Signature calldata signature
     ) external collectFee(msg.sender, spaceshipMintingFee) {
         bytes32 digest = keccak256(
-            abi.encode("mintNewSpaceship", nickname, msg.sender, parts)
+            abi.encode(
+                "mintNewSpaceship",
+                baseSpaceshipTokenId,
+                nickname,
+                msg.sender,
+                parts
+            )
         );
         _checkSignature(digest, signature);
-        _mintNewSpaceship(msg.sender, nickname, parts);
+        _mintNewSpaceship(msg.sender, baseSpaceshipTokenId, nickname, parts);
     }
 
     function mintNewSpaceshipByAdmin(
+        uint256 baseSpaceshipTokenId,
         bytes32 nickname,
         uint24[] calldata parts,
         address user
@@ -230,7 +246,7 @@ contract SpaceFactory is AccessControl {
         onlyRole(SIGNER_ROLE)
         collectFee(user, spaceshipMintingFee)
     {
-        _mintNewSpaceship(msg.sender, nickname, parts);
+        _mintNewSpaceship(user, baseSpaceshipTokenId, nickname, parts);
     }
 
     function updateSpaceshipParts(
@@ -334,6 +350,13 @@ contract SpaceFactory is AccessControl {
     }
 
     /* ============ Admin Functions ============ */
+
+    function setBaseSpaceshipAccessPeriod(
+        uint64 _baseSpaceshipAccessPeriod
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseSpaceshipAccessPeriod = _baseSpaceshipAccessPeriod;
+        emit SetBaseSpaceshipAccessPeriod(baseSpaceshipAccessPeriod);
+    }
 
     function setBaseSpaceshipNFTAddress(
         IBaseSpaceshipNFT _baseSpaceshipNFT
@@ -466,6 +489,51 @@ contract SpaceFactory is AccessControl {
 
     /* ============ Internal Functions ============ */
 
+    function _rentBaseSpaceship(uint256 tokenId, address user) internal {
+        if (baseSpaceshipNFT.userOf(tokenId) != address(0)) {
+            revert UnavailableBaseSpaceship(
+                tokenId,
+                baseSpaceshipNFT.userOf(tokenId)
+            );
+        }
+        if (
+            baseSpaceshipUserMap[user] != 0 &&
+            baseSpaceshipNFT.userOf(baseSpaceshipUserMap[user]) != address(0)
+        ) {
+            revert AlreadyUserOfBaseSpaceship(); // Can only rent one base spaceship at a time
+        }
+        baseSpaceshipUserMap[user] = tokenId;
+        baseSpaceshipNFT.setUser(
+            tokenId,
+            user,
+            uint64(block.timestamp + baseSpaceshipAccessPeriod)
+        );
+    }
+
+    function _extendBaseSpaceshipAccess(
+        uint256 tokenId,
+        address user
+    ) internal {
+        if (baseSpaceshipNFT.userOf(tokenId) != user) {
+            revert NotUserOfBaseSpaceship(
+                tokenId,
+                baseSpaceshipNFT.userOf(tokenId)
+            );
+        }
+
+        uint currentExpires = baseSpaceshipNFT.userExpires(tokenId);
+
+        if (currentExpires > block.timestamp + baseSpaceshipAccessPeriod) {
+            revert NotWithinExtensionPeriod(tokenId, currentExpires);
+        }
+
+        baseSpaceshipNFT.setUser(
+            tokenId,
+            user,
+            uint64(currentExpires + baseSpaceshipAccessPeriod)
+        );
+    }
+
     // get pseudo random number between 0~max
     // @TODO replace with Chainlink or something equivalent
     function _getRandomNumber(
@@ -509,9 +577,17 @@ contract SpaceFactory is AccessControl {
 
     function _mintNewSpaceship(
         address to,
+        uint256 baseSpaceshipTokenId,
         bytes32 nickname,
         uint24[] calldata parts
     ) internal {
+        if (baseSpaceshipNFT.userOf(baseSpaceshipTokenId) != to) {
+            revert NotUserOfBaseSpaceship(
+                baseSpaceshipTokenId,
+                baseSpaceshipNFT.userOf(baseSpaceshipTokenId)
+            );
+        }
+
         uint[] memory ids = new uint[](parts.length);
         uint[] memory amounts = new uint[](parts.length);
 
@@ -522,7 +598,7 @@ contract SpaceFactory is AccessControl {
                 ++i;
             }
         }
-
+        baseSpaceshipNFT.burn(baseSpaceshipTokenId);
         partsNFT.batchBurnParts(to, ids, amounts);
         spaceshipNFT.mintSpaceship(to, nickname, parts);
     }
