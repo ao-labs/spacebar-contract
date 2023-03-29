@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol";
 import "./interfaces/IBaseSpaceshipNFT.sol";
 
@@ -110,9 +109,9 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
         address from,
         address to,
         uint256 tokenId,
-        uint256
+        uint256 batchSize
     ) internal virtual override {
-        super._beforeTokenTransfer(from, to, tokenId, 1);
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
 
         if (from != to && _users[tokenId].user != address(0)) {
             delete _users[tokenId];

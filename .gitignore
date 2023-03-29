@@ -4,8 +4,12 @@ coverage
 coverage.json
 typechain
 typechain-types
+.deps
 
 # Hardhat files
 cache
 artifacts
 
+# Foundry files
+cache_forge
+out
