@@ -13,7 +13,6 @@ import "./interfaces/ISpaceshipNFT.sol";
 contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
     /* ============ Variables ============ */
 
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
 
     uint256 public totalSupply;
@@ -62,12 +61,8 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
 
     /* ============ Constructor ============ */
 
-    constructor(
-        address signer,
-        address spaceFactory
-    ) ERC721("Spaceship NFT", "SPACESHIP") {
+    constructor(address spaceFactory) ERC721("Spaceship NFT", "SPACESHIP") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, signer);
         _grantRole(SPACE_FACTORY, spaceFactory);
     }
 
@@ -109,6 +104,9 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
     function burn(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "only owner can burn");
         _burn(tokenId);
+        unchecked {
+            --totalSupply;
+        }
     }
 
     /* ============ View Functions ============ */
