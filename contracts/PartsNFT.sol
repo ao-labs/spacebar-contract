@@ -4,9 +4,10 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IPartsNFT.sol";
 
-contract Parts is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
+contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
     /* ============ Variables ============ */
 
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
@@ -75,7 +76,7 @@ contract Parts is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
     /* ============ View Functions ============ */
 
     function uri(uint256 tokenId) public view override returns (string memory) {
-        return string(abi.encodePacked(super.uri(tokenId), tokenId));
+        return string.concat(super.uri(tokenId), Strings.toString(tokenId));
     }
 
     /* ============ ERC-165 ============ */
