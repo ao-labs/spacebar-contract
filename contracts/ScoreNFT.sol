@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IScoreNFT.sol";
 
@@ -9,7 +10,7 @@ import "./interfaces/IScoreNFT.sol";
 // import "hardhat/console.sol";
 
 // @TODO add natspec comments
-contract ScoreNFT is ERC721, AccessControl, IScoreNFT {
+contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
     /* ============ Variables ============ */
 
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
@@ -60,9 +61,11 @@ contract ScoreNFT is ERC721, AccessControl, IScoreNFT {
         }
     }
 
-    function burn(uint256 tokenId) external {
-        require(ownerOf(tokenId) == msg.sender, "only owner can burn");
-        _burn(tokenId);
+    function burn(uint256 tokenId) public override {
+        super.burn(tokenId);
+        unchecked {
+            --totalSupply;
+        }
     }
 
     /* ============ View Functions ============ */
