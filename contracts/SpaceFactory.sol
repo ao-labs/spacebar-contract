@@ -44,7 +44,7 @@ contract SpaceFactory is AccessControl {
     uint24 constant MAX_PART_QUANTITY = 777215;
     uint16 public partsMintingSuccessRate; // Basis points (Max: 10000)
 
-    uint64 baseSpaceshipAccessPeriod;
+    uint64 public baseSpaceshipAccessPeriod;
 
     /* ============ Structs ============ */
 
@@ -544,10 +544,7 @@ contract SpaceFactory is AccessControl {
                 baseSpaceshipNFT.userOf(tokenId)
             );
         }
-        if (
-            baseSpaceshipUserMap[user] != 0 &&
-            baseSpaceshipNFT.userOf(baseSpaceshipUserMap[user]) != address(0)
-        ) {
+        if (baseSpaceshipNFT.userOf(baseSpaceshipUserMap[user]) != address(0)) {
             revert AlreadyUserOfBaseSpaceship(); // Can only rent one base spaceship at a time
         }
         baseSpaceshipUserMap[user] = tokenId;
@@ -571,7 +568,7 @@ contract SpaceFactory is AccessControl {
 
         uint currentExpires = baseSpaceshipNFT.userExpires(tokenId);
 
-        if (currentExpires > block.timestamp + baseSpaceshipAccessPeriod) {
+        if (currentExpires >= block.timestamp + baseSpaceshipAccessPeriod) {
             revert NotWithinExtensionPeriod(tokenId, currentExpires);
         }
 
