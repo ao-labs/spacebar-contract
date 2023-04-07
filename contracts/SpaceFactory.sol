@@ -42,9 +42,11 @@ contract SpaceFactory is AccessControl {
 
     uint8 constant MAX_PART_TYPE = 16;
     uint24 constant MAX_PART_QUANTITY = 777215;
+    uint16 constant MAX_PARTS_MINTING_SUCCESS_RATE = 10000;
+    uint24 constant MIN_PART_ID = 1000001;
     uint16 public partsMintingSuccessRate; // Basis points (Max: 10000)
 
-    uint64 baseSpaceshipAccessPeriod;
+    uint64 public baseSpaceshipAccessPeriod;
 
     /* ============ Structs ============ */
 
@@ -93,6 +95,7 @@ contract SpaceFactory is AccessControl {
     error NotTokenOnwer();
     error InvalidRate();
     error InvalidId();
+    error InvalidPartsLength();
 
     /* ============ Modifiers ============ */
 
@@ -110,6 +113,13 @@ contract SpaceFactory is AccessControl {
         _;
     }
 
+    modifier onlySpaceshipOwner(address user, uint tokenId) {
+        if (spaceshipNFT.ownerOf(tokenId) != user) {
+            revert NotTokenOnwer();
+        }
+        _;
+    }
+
     /* ============ Constructor ============ */
 
     // @TODO upgradeable init function
@@ -118,7 +128,7 @@ contract SpaceFactory is AccessControl {
         uint24[] memory _quantityPerPartsType,
         uint16 _partsMintingSuccessRate
     ) {
-        if (_partsMintingSuccessRate > 10000) {
+        if (_partsMintingSuccessRate > MAX_PARTS_MINTING_SUCCESS_RATE) {
             revert InvalidRate();
         }
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -195,7 +205,11 @@ contract SpaceFactory is AccessControl {
     function mintRandomParts(
         uint amount,
         Signature calldata signature
-    ) external collectFee(msg.sender, partsMintingFee) {
+    )
+        external
+        collectFee(msg.sender, partsMintingFee)
+        returns (uint[] memory ids)
+    {
         if (amount == 0) {
             revert InvalidAmount();
         }
@@ -203,11 +217,14 @@ contract SpaceFactory is AccessControl {
             abi.encode("mintParts", msg.sender, partsNFT, amount)
         );
         _checkSignature(digest, signature);
+
         if (amount == 1) {
-            _mintRandomParts(msg.sender);
+            uint[] memory id = new uint[](1);
+            id[0] = _mintRandomParts(msg.sender, 0);
+            return id;
         }
         if (amount > 1) {
-            _batchMintRandomParts(msg.sender, amount);
+            return _batchMintRandomParts(msg.sender, amount);
         }
     }
 
@@ -219,15 +236,18 @@ contract SpaceFactory is AccessControl {
         addressCheck(user)
         onlyRole(SIGNER_ROLE)
         collectFee(user, partsMintingFee)
+        returns (uint[] memory ids)
     {
         if (amount == 0) {
             revert InvalidAmount();
         }
         if (amount == 1) {
-            _mintRandomParts(user);
+            uint[] memory id = new uint[](1);
+            id[0] = _mintRandomParts(user, 0);
+            return id;
         }
         if (amount > 1) {
-            _batchMintRandomParts(user, amount);
+            return _batchMintRandomParts(user, amount);
         }
     }
 
@@ -260,7 +280,7 @@ contract SpaceFactory is AccessControl {
         if (specialPartsMintingFee[id] == 0) {
             revert InvalidId();
         }
-        partsNFT.mintParts(msg.sender, id);
+        partsNFT.mintParts(user, id);
     }
 
     function mintNewSpaceship(
@@ -300,7 +320,11 @@ contract SpaceFactory is AccessControl {
         uint tokenId,
         uint24[] calldata parts,
         Signature calldata signature
-    ) external collectFee(msg.sender, spaceshipUpdatingFee) {
+    )
+        external
+        collectFee(msg.sender, spaceshipUpdatingFee)
+        onlySpaceshipOwner(msg.sender, tokenId)
+    {
         bytes32 digest = keccak256(
             abi.encode("updateSpaceshipParts", msg.sender, tokenId, parts)
         );
@@ -316,6 +340,7 @@ contract SpaceFactory is AccessControl {
         external
         addressCheck(user)
         onlyRole(SIGNER_ROLE)
+        onlySpaceshipOwner(user, tokenId)
         collectFee(user, spaceshipUpdatingFee)
     {
         _updateSpaceshipParts(user, tokenId, parts);
@@ -325,7 +350,11 @@ contract SpaceFactory is AccessControl {
         uint tokenId,
         bytes32 nickname,
         Signature calldata signature
-    ) external collectFee(msg.sender, spaceshipNicknameUpdatingFee) {
+    )
+        external
+        onlySpaceshipOwner(msg.sender, tokenId)
+        collectFee(msg.sender, spaceshipNicknameUpdatingFee)
+    {
         bytes32 digest = keccak256(
             abi.encode("updateSpaceshipNickname", msg.sender, tokenId, nickname)
         );
@@ -341,6 +370,7 @@ contract SpaceFactory is AccessControl {
         external
         addressCheck(user)
         onlyRole(SIGNER_ROLE)
+        onlySpaceshipOwner(user, tokenId)
         collectFee(user, spaceshipNicknameUpdatingFee)
     {
         spaceshipNFT.updateSpaceshipNickname(tokenId, nickname);
@@ -419,7 +449,7 @@ contract SpaceFactory is AccessControl {
         emit SetSpaceshipNFTAddress(spaceshipNFT);
     }
 
-    function setPartsNftAddress(
+    function setPartsNFTAddress(
         IPartsNFT _partsNFT
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         partsNFT = _partsNFT;
@@ -485,6 +515,9 @@ contract SpaceFactory is AccessControl {
         uint id,
         uint _partsMintingFee
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (id < MIN_PART_ID) {
+            revert InvalidAmount();
+        }
         specialPartsMintingFee[id] = _partsMintingFee;
         emit SetSpecialPartsMintingFee(id, _partsMintingFee);
     }
@@ -528,7 +561,7 @@ contract SpaceFactory is AccessControl {
     function setPartsMintingSuccessRate(
         uint16 _partsMintingSuccessRate
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (_partsMintingSuccessRate > 10000) {
+        if (_partsMintingSuccessRate > MAX_PARTS_MINTING_SUCCESS_RATE) {
             revert InvalidRate();
         }
         partsMintingSuccessRate = _partsMintingSuccessRate;
@@ -544,10 +577,7 @@ contract SpaceFactory is AccessControl {
                 baseSpaceshipNFT.userOf(tokenId)
             );
         }
-        if (
-            baseSpaceshipUserMap[user] != 0 &&
-            baseSpaceshipNFT.userOf(baseSpaceshipUserMap[user]) != address(0)
-        ) {
+        if (baseSpaceshipNFT.userOf(baseSpaceshipUserMap[user]) != address(0)) {
             revert AlreadyUserOfBaseSpaceship(); // Can only rent one base spaceship at a time
         }
         baseSpaceshipUserMap[user] = tokenId;
@@ -571,7 +601,7 @@ contract SpaceFactory is AccessControl {
 
         uint currentExpires = baseSpaceshipNFT.userExpires(tokenId);
 
-        if (currentExpires > block.timestamp + baseSpaceshipAccessPeriod) {
+        if (currentExpires >= block.timestamp + baseSpaceshipAccessPeriod) {
             revert NotWithinExtensionPeriod(tokenId, currentExpires);
         }
 
@@ -605,15 +635,16 @@ contract SpaceFactory is AccessControl {
         emit SetQuantityPerPartsType(_quantityPerPartsType);
     }
 
-    // get pseudo random number between 0~max
+    // get pseudo random number between 1~max
     // @TODO replace with Chainlink or something equivalent
     function _getRandomNumber(
         uint max,
         uint randomNonce
     ) internal view returns (uint) {
         return
-            uint(keccak256(abi.encodePacked(block.timestamp, randomNonce))) %
-            (max + 1);
+            1 +
+            (uint(keccak256(abi.encodePacked(block.timestamp, randomNonce))) %
+                max);
     }
 
     function _getRandomPartsId(
@@ -624,31 +655,37 @@ contract SpaceFactory is AccessControl {
         );
         uint24 partNumber = uint24(
             _getRandomNumber(
-                uint256(quantityPerPartsType[partType]),
+                uint256(quantityPerPartsType[partType - 1]),
                 randomNonce
             )
         );
         return uint24(partType * 100000) + partNumber;
     }
 
-    function _mintRandomParts(address to) internal {
-        if (_getRandomNumber(9999, 0) < partsMintingSuccessRate) {
-            partsNFT.mintParts(to, _getRandomPartsId(0));
+    function _mintRandomParts(
+        address to,
+        uint randomNonce
+    ) internal returns (uint) {
+        if (_getRandomNumber(9999, randomNonce) < partsMintingSuccessRate) {
+            uint id = _getRandomPartsId(randomNonce);
+            partsNFT.mintParts(to, id);
+            return id;
         }
+        return 0;
     }
 
-    function _batchMintRandomParts(address to, uint amount) internal {
+    function _batchMintRandomParts(
+        address to,
+        uint amount
+    ) internal returns (uint[] memory) {
         uint256[] memory ids = new uint256[](amount);
-        uint256[] memory amounts = new uint256[](amount);
-
         for (uint i = 0; i < amount; ) {
-            ids[i] = _getRandomPartsId(i);
-            amounts[i] = 1;
+            ids[i] = _mintRandomParts(to, i);
             unchecked {
                 ++i;
             }
         }
-        partsNFT.batchMintParts(to, ids, amounts);
+        return ids;
     }
 
     function _mintNewSpaceship(
@@ -667,7 +704,7 @@ contract SpaceFactory is AccessControl {
         uint[] memory ids = new uint[](parts.length);
         uint[] memory amounts = new uint[](parts.length);
 
-        for (uint i = 1; i < parts.length; ) {
+        for (uint i = 0; i < parts.length; ) {
             ids[i] = uint(parts[i]);
             amounts[i] = 1;
             unchecked {
@@ -684,14 +721,15 @@ contract SpaceFactory is AccessControl {
         uint tokenId,
         uint24[] calldata newParts
     ) internal {
-        if (spaceshipNFT.ownerOf(tokenId) != owner) {
-            revert NotTokenOnwer();
-        }
         uint24[] memory currentParts = spaceshipNFT.getParts(tokenId);
+
+        if (currentParts.length != newParts.length) {
+            revert InvalidPartsLength();
+        }
 
         uint24[] memory parts = new uint24[](currentParts.length);
 
-        for (uint i = 1; i < currentParts.length; ) {
+        for (uint i = 0; i < currentParts.length; ) {
             if (newParts[i] != uint(currentParts[i])) {
                 partsNFT.burnParts(owner, newParts[i], 1);
             }

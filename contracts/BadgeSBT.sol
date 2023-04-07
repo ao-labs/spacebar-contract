@@ -77,7 +77,7 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
         }
         if (auth == BurnAuth.Both) {
             if (
-                msg.sender != ownerOf(tokenId) ||
+                msg.sender != ownerOf(tokenId) &&
                 !hasRole(BURNER_ROLE, msg.sender)
             ) {
                 revert CanNotBurn(msg.sender, auth, tokenId);
