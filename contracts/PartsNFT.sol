@@ -7,13 +7,18 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./interfaces/IPartsNFT.sol";
 
+/// @title Parts NFT
+/// @notice ERC-1155 contract for spaceship parts. Parts are burned along with base spaceship to mint a new spaceship.
+/// Parts can be also burned to update existing spaceship.
 contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
     /* ============ Variables ============ */
 
+    /// @dev The constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
 
     /* ============ Errors ============ */
 
+    /// @dev The error for exceeding the maximum token id which is type uint24's max (16777215)
     error ExceedMaximumTokenId(uint256 id);
 
     /* ============ Constructor ============ */
@@ -28,8 +33,7 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
     /* ============ External Functions ============ */
 
     // @TODO add parameter checks
-
-    // Space Factory generates a random part, and the info is encoded within the token id
+    /// @inheritdoc IPartsNFT
     function mintParts(
         address to,
         uint256 id
@@ -56,7 +60,7 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
         _mintBatch(to, ids, amounts, "");
     }
 
-    // This is called from Space Factory when creating new ultimate spaceship or updating it
+    /// @inheritdoc IPartsNFT
     function burnParts(
         address from,
         uint256 id,
@@ -65,6 +69,7 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
         _burn(from, id, amount);
     }
 
+    /// @inheritdoc IPartsNFT
     function batchBurnParts(
         address from,
         uint256[] calldata ids,
@@ -75,6 +80,9 @@ contract PartsNFT is ERC1155Supply, ERC1155Burnable, AccessControl, IPartsNFT {
 
     /* ============ View Functions ============ */
 
+    /// @dev It concats base uri with the given token id
+    /// @param tokenId The id of the token
+    /// @return The uri of the token with the given id
     function uri(uint256 tokenId) public view override returns (string memory) {
         return string.concat(super.uri(tokenId), Strings.toString(tokenId));
     }
