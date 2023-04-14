@@ -319,7 +319,7 @@ contract SpaceFactory is AccessControl {
         partsNFT.mintParts(user, id);
     }
 
-    /// @TODO should check the length of the parts list?
+    // @TODO should check the length of the parts list?
     /// @notice minting new spaceship
     /// @dev This will burn the base spaceship and parts, and mint a new spaceship to user.
     /// User must be user of base spaceship, and must own all the parts.
