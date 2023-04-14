@@ -4,14 +4,17 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Consecutive.sol";
 import "./interfaces/IBaseSpaceshipNFT.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-// @TODO add natspec comments
+/// @title Base spaceship NFT.
+/// @notice The owner of the tokens is space factory contract.
+/// Space factory will rent this NFT to users, and will burn base spaceship and parts to mint a new spaceship.
+/// User has to frequently extend the rent time to keep the spaceship. This logic is in SpaceFactory.sol.
+/// @dev During construction, maximum amount of tokens are minted to the space factory contract.
 contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
     /* ============ Variables ============ */
 
+    /// @dev The current supply of tokens
     uint public totalSupply;
+    /// @dev The maximum supply of tokens. They are minted during construction.
     uint16 public constant MAXIMUM_SUPPLY = 1000;
 
     mapping(uint256 => UserInfo) private _users;
@@ -32,11 +35,7 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
 
     /* ============ External Functions ============ */
 
-    /// @notice set the user and expires of an NFT
-    /// @dev The zero address indicates there is no user
-    /// Throws if `tokenId` is not valid NFT
-    /// @param user  The new user of the NFT
-    /// @param expires  UNIX timestamp, The new user could use the NFT before expires
+    /// @inheritdoc IERC4907
     function setUser(
         uint256 tokenId,
         address user,
@@ -52,7 +51,7 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
         emit UpdateUser(tokenId, user, expires);
     }
 
-    /// @notice Basespaceship is burned to create an ultimate spaceship
+    /// @inheritdoc IBaseSpaceshipNFT
     function burn(uint256 tokenId) external {
         require(
             _isApprovedOrOwner(msg.sender, tokenId),
@@ -66,10 +65,7 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
 
     /* ============ View Functions ============ */
 
-    /// @notice Get the user address of an NFT
-    /// @dev The zero address indicates that there is no user or the user is expired
-    /// @param tokenId The NFT to get the user address for
-    /// @return The user address for this NFT
+    /// @inheritdoc IERC4907
     function userOf(uint256 tokenId) public view virtual returns (address) {
         if (uint256(_users[tokenId].expires) >= block.timestamp) {
             return _users[tokenId].user;
@@ -78,10 +74,7 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
         }
     }
 
-    /// @notice Get the user expires of an NFT
-    /// @dev The zero value indicates that there is no user
-    /// @param tokenId The NFT to get the user expires for
-    /// @return The user expires for this NFT
+    /// @inheritdoc IERC4907
     function userExpires(
         uint256 tokenId
     ) public view virtual returns (uint256) {

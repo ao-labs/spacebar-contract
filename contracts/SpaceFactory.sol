@@ -9,14 +9,15 @@ import "./interfaces/IPartsNFT.sol";
 import "./interfaces/IBadgeSBT.sol";
 import "./interfaces/IScoreNFT.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
 // @TODO implement upgradeability
-// @TODO add natspec comments
+/// @title Space Factory contract.
+/// @notice This contract is responsible for minting and burning various NFTs and SBTs.
+/// Functions with ByAdmin suffix are designed to be called by the admin(SIGNER), so that users
+/// don't have to pay for gas fees.
 contract SpaceFactory is AccessControl {
     /* ============ Variables ============ */
 
+    /// @dev The constant for the signer role
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
 
     uint public baseSpaceshipRentalFee;
@@ -26,11 +27,15 @@ contract SpaceFactory is AccessControl {
     uint public spaceshipUpdatingFee;
     uint public spaceshipMintingFee;
     uint public partsMintingFee;
-    // badge and special parts minting fees can vary depending on the type of badge or part
-    mapping(uint8 => uint) public badgeMintingFee;
-    mapping(uint => uint) public specialPartsMintingFee;
+
+    /// @notice badge and special parts minting fees can vary depending on the type of badge or part
+    mapping(uint8 => uint) public badgeMintingFee; // badgeMintingFee[category] = fee
+    mapping(uint => uint) public specialPartsMintingFee; // specialPartsMintingFee[partsTokenId] = fee
+
+    /// @dev How many parts of each type are available
+    /// for example, [100, 200, 300] means that there are 100 parts of type 1, 200 parts of type 2, and 300 parts of type 3
     uint24[] public quantityPerPartsType;
-    mapping(address => uint) private baseSpaceshipUserMap;
+    mapping(address => uint) private baseSpaceshipUserMap; // baseSpaceshipUserMap[user] = tokenId
 
     IBaseSpaceshipNFT public baseSpaceshipNFT;
     ISpaceshipNFT public spaceshipNFT;
@@ -38,11 +43,12 @@ contract SpaceFactory is AccessControl {
     IBadgeSBT public badgeSBT;
     IScoreNFT public scoreNFT;
     IERC20 public airTokenContract;
+    /// @dev Collected fee ($AIR) is immediately sent to this address
     address public feeCollector;
 
     uint8 constant MAX_PART_TYPE = 16;
     uint24 constant MAX_PART_QUANTITY = 777215;
-    uint16 constant MAX_PARTS_MINTING_SUCCESS_RATE = 10000;
+    uint16 constant MAX_PARTS_MINTING_SUCCESS_RATE = 10000; // 100%
     uint24 constant MIN_PART_ID = 1000001;
     uint16 public partsMintingSuccessRate; // Basis points (Max: 10000)
 
@@ -144,6 +150,11 @@ contract SpaceFactory is AccessControl {
 
     // @TODO use sign typed data + custom nonce (if necessary)
     // ex. @openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol
+    /// @notice rent a base spaceship. User has to extend the rental period before it expires.
+    /// @dev Rent expires at current time + baseSpaceshipAccessPeriod.
+    /// It reverts if the base spaceship is already rented by someone else, or the address already has one.
+    /// @param tokenId base spaceship token id
+    /// @param signature signature from the signer
     function rentBaseSpaceship(
         uint tokenId,
         Signature calldata signature
@@ -162,6 +173,9 @@ contract SpaceFactory is AccessControl {
     }
 
     // @TODO should admin functions also provide user's signature?
+    /// @notice admin function for renting a base spaceship
+    /// @param tokenId base spaceship token id
+    /// @param user user address
     function rentBaseSpaceshipByAdmin(
         uint tokenId,
         address user
@@ -174,6 +188,10 @@ contract SpaceFactory is AccessControl {
         _rentBaseSpaceship(tokenId, user);
     }
 
+    /// @notice extend the rental period of a base spaceship
+    /// @dev It extends period by baseSpaceshipAccessPeriod.
+    /// @param tokenId base spaceship token id
+    /// @param signature signature from the signer
     function extendBaseSpaceship(
         uint tokenId,
         Signature calldata signature
@@ -190,6 +208,9 @@ contract SpaceFactory is AccessControl {
         _extendBaseSpaceshipAccess(tokenId, msg.sender);
     }
 
+    /// @notice admin function for extending the rental period of a base spaceship
+    /// @param tokenId base spaceship token id
+    /// @param user user address
     function extendBaseSpaceshipByAdmin(
         uint tokenId,
         address user
@@ -202,6 +223,12 @@ contract SpaceFactory is AccessControl {
         _extendBaseSpaceshipAccess(tokenId, user);
     }
 
+    /// @notice minting random parts
+    /// @dev based on the quantityPerPartsType, it will randomly choose a token id and mint token to user.
+    /// Based on partsMintingSuccessRate (0-10000), it will mint successfully or not.
+    /// For example, if partsMintingSuccessRate is 5000 and amount is 10, you can expect 5 parts will be minted.
+    /// @param amount amount of parts to mint
+    /// @param signature signature from the signer
     function mintRandomParts(
         uint amount,
         Signature calldata signature
@@ -228,6 +255,9 @@ contract SpaceFactory is AccessControl {
         }
     }
 
+    /// @notice Admin function for minting random parts
+    /// @param amount amount of parts to mint
+    /// @param user user address
     function mintRandomPartsByAdmin(
         uint amount,
         address user
@@ -251,7 +281,10 @@ contract SpaceFactory is AccessControl {
         }
     }
 
-    //must set specialPartsMintingFee before minting
+    /// @notice mint special parts
+    /// @dev specialPartsMintingFee must be set before minting
+    /// @param id token id
+    /// @param signature signature from the signer
     function mintSpecialParts(
         uint id,
         Signature calldata signature
@@ -268,6 +301,9 @@ contract SpaceFactory is AccessControl {
         partsNFT.mintParts(msg.sender, id);
     }
 
+    /// @notice admin function for minting special parts
+    /// @param id token id
+    /// @param user user to mint special parts to
     function mintSpecialPartsByAdmin(
         uint id,
         address user
@@ -283,6 +319,14 @@ contract SpaceFactory is AccessControl {
         partsNFT.mintParts(user, id);
     }
 
+    // @TODO should check the length of the parts list?
+    /// @notice minting new spaceship
+    /// @dev This will burn the base spaceship and parts, and mint a new spaceship to user.
+    /// User must be user of base spaceship, and must own all the parts.
+    /// @param baseSpaceshipTokenId base spaceship token id
+    /// @param nickname nickname of the new spaceship
+    /// @param parts list of the parts to use
+    /// @param signature signature from the signer
     function mintNewSpaceship(
         uint256 baseSpaceshipTokenId,
         bytes32 nickname,
@@ -302,6 +346,11 @@ contract SpaceFactory is AccessControl {
         _mintNewSpaceship(msg.sender, baseSpaceshipTokenId, nickname, parts);
     }
 
+    /// @notice admin function for minting new spaceship
+    /// @param baseSpaceshipTokenId base spaceship token id
+    /// @param nickname nickname of the new spaceship
+    /// @param parts list of the parts to use
+    /// @param user user address to mint spaceship to
     function mintNewSpaceshipByAdmin(
         uint256 baseSpaceshipTokenId,
         bytes32 nickname,
@@ -316,9 +365,17 @@ contract SpaceFactory is AccessControl {
         _mintNewSpaceship(user, baseSpaceshipTokenId, nickname, parts);
     }
 
+    /// @notice update spaceship parts
+    /// @dev User has to provide the full list of the parts. And this function will compare the current parts
+    /// with the new parts, and burn the parts that are not in the new list.
+    /// ex. current parts: [A, B, C, D, E], new parts: [A, B, C, F, G], than this function will burn F and G from user
+    /// It will revert if user doesn't own F and G.
+    /// @param tokenId spaceship token id
+    /// @param newParts list of the new parts
+    /// @param signature signature from the signer
     function updateSpaceshipParts(
         uint tokenId,
-        uint24[] calldata parts,
+        uint24[] calldata newParts,
         Signature calldata signature
     )
         external
@@ -326,15 +383,19 @@ contract SpaceFactory is AccessControl {
         onlySpaceshipOwner(msg.sender, tokenId)
     {
         bytes32 digest = keccak256(
-            abi.encode("updateSpaceshipParts", msg.sender, tokenId, parts)
+            abi.encode("updateSpaceshipParts", msg.sender, tokenId, newParts)
         );
         _checkSignature(digest, signature);
-        _updateSpaceshipParts(msg.sender, tokenId, parts);
+        _updateSpaceshipParts(msg.sender, tokenId, newParts);
     }
 
+    /// @notice admin function for updating spaceship parts
+    /// @param tokenId spaceship token id
+    /// @param newParts list of the new parts
+    /// @param user user who owns the spaceship
     function updateSpaceshipPartsByAdmin(
         uint tokenId,
-        uint24[] calldata parts,
+        uint24[] calldata newParts,
         address user
     )
         external
@@ -343,9 +404,12 @@ contract SpaceFactory is AccessControl {
         onlySpaceshipOwner(user, tokenId)
         collectFee(user, spaceshipUpdatingFee)
     {
-        _updateSpaceshipParts(user, tokenId, parts);
+        _updateSpaceshipParts(user, tokenId, newParts);
     }
 
+    /// @notice updates spaceship nickname
+    /// @param tokenId spaceship token id
+    /// @param nickname new nickname
     function updateSpaceshipNickname(
         uint tokenId,
         bytes32 nickname,
@@ -362,6 +426,10 @@ contract SpaceFactory is AccessControl {
         spaceshipNFT.updateSpaceshipNickname(tokenId, nickname);
     }
 
+    /// @notice admin function for updating spaceship nickname
+    /// @param tokenId spaceship token id
+    /// @param nickname new nickname
+    /// @param user user who owns the spaceship
     function updateSpaceshipNicknameByAdmin(
         uint tokenId,
         bytes32 nickname,
@@ -376,6 +444,9 @@ contract SpaceFactory is AccessControl {
         spaceshipNFT.updateSpaceshipNickname(tokenId, nickname);
     }
 
+    /// @notice mint score NFT to user
+    /// @param category category of the score (ex. 1: Single Player, 2: Multiplayer etc)
+    /// @param score user's score
     function mintScore(
         uint8 category,
         uint88 score,
@@ -388,6 +459,10 @@ contract SpaceFactory is AccessControl {
         scoreNFT.mintScore(msg.sender, category, score);
     }
 
+    /// @notice admin function for minting score NFT to user
+    /// @param category category of the score (ex. 1: Single Player, 2: Multiplayer etc)
+    /// @param score user's score
+    /// @param user user address to mint score NFT to
     function mintScoreByAdmin(
         uint8 category,
         uint88 score,
@@ -401,6 +476,10 @@ contract SpaceFactory is AccessControl {
         scoreNFT.mintScore(user, category, score);
     }
 
+    /// @notice mint badge SBT to user
+    /// @param category category of the badge (ex. 1: Elite, 2: Creative etc)
+    /// @param burnAuth burn authorization of the badge. See IERC5484
+    /// @param signature signature from the signer
     function mintBadge(
         uint8 category,
         IBadgeSBT.BurnAuth burnAuth,
@@ -413,6 +492,10 @@ contract SpaceFactory is AccessControl {
         badgeSBT.mintBadge(msg.sender, category, burnAuth);
     }
 
+    /// @notice admin function for minting badge SBT to user
+    /// @param category category of the badge (ex. 1: Elite, 2: Creative etc)
+    /// @param burnAuth burn authorization of the badge. See IERC5484
+    /// @param user user address to mint badge SBT to
     function mintBadgeByAdmin(
         uint8 category,
         IBadgeSBT.BurnAuth burnAuth,

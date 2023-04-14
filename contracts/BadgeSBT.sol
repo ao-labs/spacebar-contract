@@ -5,15 +5,17 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IBadgeSBT.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-// @TODO add natspec comments
+/// @title Badge soulbound token.
+/// @dev  A soulbound token that can be burned by the issuer or the owner.
+/// Token cannot be transferred and its burn authorization is determined by the issuer.
 contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
     /* ============ Variables ============ */
 
+    /// @dev The constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
+    /// @dev The constant for the burner role (issuer)
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    /// @dev The total supply of tokens
     uint256 public totalSupply;
 
     mapping(uint256 => TokenType) private _tokenTypes;
@@ -53,6 +55,7 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
 
     // @TODO add parameter checks
     // @TODO might want to implement custom token URI (not by increasing integer)
+    /// @inheritdoc IBadgeSBT
     function mintBadge(
         address to,
         uint8 category,
@@ -67,6 +70,9 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
         }
     }
 
+    /// @notice Burns a badge
+    /// @dev Burner account(issuer), owner, or both can burn depending on the burn authorization.
+    /// @param tokenId The ID of the token to burn
     function burn(uint256 tokenId) external {
         BurnAuth auth = _tokenTypes[tokenId].burnAuth;
         if (auth == BurnAuth.IssuerOnly && !hasRole(BURNER_ROLE, msg.sender)) {
@@ -92,11 +98,15 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
 
     /* ============ View Functions ============ */
 
+    ///@dev Returns the category of the token
+    ///@param tokenId The ID of the token
     function getCategory(uint256 tokenId) external view returns (uint8) {
         require(_exists(tokenId), "ERC721: invalid token ID");
         return _tokenTypes[tokenId].category;
     }
 
+    ///@dev Returns the burn authorization of the token
+    ///@param tokenId The ID of the token
     function burnAuth(uint256 tokenId) external view returns (BurnAuth) {
         require(_exists(tokenId), "ERC721: invalid token ID");
         return _tokenTypes[tokenId].burnAuth;

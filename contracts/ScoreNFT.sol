@@ -6,14 +6,14 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/IScoreNFT.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-// @TODO add natspec comments
+/// @title Score NFT
+/// @notice ERC-721 contract for recording user scores. Users can mint their scores as NFTs.
 contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
     /* ============ Variables ============ */
 
+    /// @dev The constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
+    /// @dev The total number of score NFTs existing
     uint256 public totalSupply;
 
     mapping(uint256 => Score) private _scores;
@@ -21,9 +21,9 @@ contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
     /* ============ Structs ============ */
 
     struct Score {
-        uint8 category;
+        uint8 category; // ex. 1 = Singleplayer, 2 = Multiplayer, etc.
         uint88 score; // MAX SCORE = 309,485,009,821,345,068,724,781,055
-        address player;
+        address player; // the initial minter who played the game
     }
 
     /* ============ Events ============ */
@@ -45,9 +45,8 @@ contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
     /* ============ External Functions ============ */
 
     // @TODO add parameter checks
-
-    // @TODO this might has to go to Sp
     // @TODO might want to implement custom token URI (not by increasing integer)
+    /// @inheritdoc IScoreNFT
     function mintScore(
         address to,
         uint8 category,
@@ -61,6 +60,9 @@ contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
         }
     }
 
+    /// @notice Burns a score NFT
+    /// @dev Only the owner of the NFT can burn
+    /// @param tokenId The ID of the NFT to burn
     function burn(uint256 tokenId) public override {
         super.burn(tokenId);
         unchecked {
@@ -70,6 +72,12 @@ contract ScoreNFT is ERC721, ERC721Burnable, AccessControl, IScoreNFT {
 
     /* ============ View Functions ============ */
 
+    /// @notice Gets the score of a score NFT
+    /// @param tokenId The ID of the NFT to get the score of
+    /// @return category Category of the score (ex. Singleplayer, Multiplayer, etc.)
+    /// @return score User's score
+    /// @return player The initial minter who played the game
+    /// @return owner Current owner of the NFT
     function getScore(
         uint256 tokenId
     )

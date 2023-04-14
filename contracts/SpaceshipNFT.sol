@@ -6,15 +6,13 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./interfaces/ISpaceshipNFT.sol";
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-// @TODO add natspec comments
+/// @title Spacecship NFT
+/// @notice ERC-721 contract for spaceship NFTs. Spaceships are minted by burning parts and a base spaceship.
 contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
     /* ============ Variables ============ */
-
+    /// @dev The constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
-
+    /// @dev The total supply of tokens
     uint256 public totalSupply;
 
     mapping(uint256 => Traits) private _traits;
@@ -35,6 +33,8 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
         bytes32 nickname
     );
 
+    /// @dev Emitted when spaceship parts are updated.
+    /// If parts is a zero array, nickname is updated. If nickname is empty, parts are updated.
     event UpdateSpaceship(uint indexed id, uint24[] parts, bytes32 nickname);
 
     /* ============ Errors ============ */
@@ -68,7 +68,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
 
     /* ============ External Functions ============ */
 
-    // If there is any potential chance of $AIR spending, SPACE FACTORY takes charge
+    /// @inheritdoc ISpaceshipNFT
     function mintSpaceship(
         address to,
         bytes32 nickname,
@@ -83,6 +83,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
         }
     }
 
+    /// @inheritdoc ISpaceshipNFT
     function updateSpaceshipParts(
         uint tokenId,
         uint24[] calldata parts
@@ -92,6 +93,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
         emit MetadataUpdate(tokenId);
     }
 
+    /// @inheritdoc ISpaceshipNFT
     function updateSpaceshipNickname(
         uint tokenId,
         bytes32 nickname
@@ -101,6 +103,7 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
         emit MetadataUpdate(tokenId);
     }
 
+    /// @dev Burn a spaceship NFT. only owner can burn
     function burn(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "only owner can burn");
         _burn(tokenId);
@@ -111,10 +114,12 @@ contract SpaceshipNFT is ERC721, AccessControl, IERC4906, ISpaceshipNFT {
 
     /* ============ View Functions ============ */
 
+    /// @inheritdoc ISpaceshipNFT
     function getParts(uint256 tokenId) external view returns (uint24[] memory) {
         return (_traits[tokenId].parts);
     }
 
+    /// @inheritdoc ISpaceshipNFT
     function getNickname(uint256 tokenId) external view returns (bytes32) {
         return (_traits[tokenId].nickname);
     }
