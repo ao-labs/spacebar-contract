@@ -4,7 +4,7 @@ import "@nomicfoundation/hardhat-toolbox"
 import "@nomiclabs/hardhat-ethers"
 import "@nomiclabs/hardhat-etherscan"
 import "@nomicfoundation/hardhat-foundry"
-import "@primitivefi/hardhat-dodoc"
+import "solidity-docgen"
 import * as dotenv from "dotenv"
 
 dotenv.config()
@@ -15,6 +15,9 @@ const config: HardhatUserConfig = {
 		settings: {
 			optimizer: { enabled: true, runs: 200 },
 		},
+	},
+	docgen: {
+		pages: "files",
 	},
 	// networks: {
 	// 	arbitrum: {
