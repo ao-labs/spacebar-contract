@@ -6,7 +6,7 @@
     "clean": "rm -rf ./artifacts ./cache ./coverage ./typechain-types ./coverage.json",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "docs": "npx hardhat dodoc",
+    "docs": "npx hardhat docgen",
     "test:report-gas": "REPORT_GAS=true npx hardhat test",
     "deploy:arbi-mainnet": "npx hardhat run scripts/deploy.ts --network arbitrum",
     "deploy:op-mainnet": "npx hardhat run scripts/deploy.ts --network optimism",
@@ -44,6 +44,7 @@
     "hardhat": "^2.12.7",
     "hardhat-gas-reporter": "^1.0.9",
     "solidity-coverage": "^0.8.2",
+    "solidity-docgen": "^0.6.0-beta.35",
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.1",
     "typescript": ">=4.5.0"
