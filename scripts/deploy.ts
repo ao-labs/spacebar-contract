@@ -7,19 +7,75 @@ async function main() {
 
 	console.log("Account balance:", (await deployer.getBalance()).toString())
 
-	const currentTimestampInSeconds = Math.round(Date.now() / 1000)
-	const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60
-	const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS
+	console.log(`Deploying SpaceFactory...`)
+	const SpaceFactory = await ethers.getContractFactory("SpaceFactory")
+	const spaceFactory = await SpaceFactory.deploy(
+		process.env.SIGNER_ADDRESS,
+		JSON.parse(process.env.QUANTYTY_PER_PARTS_TYPE || ""),
+		process.env.PARTS_MINTING_SUCCESS_RATE
+	)
+	console.log(`SpaceFactory is deployed to ${spaceFactory.address}`)
 
-	const lockedAmount = ethers.utils.parseEther("0")
+	console.log(`Deploying BadgeSBT...`)
+	const BadgeSBT = await ethers.getContractFactory("BadgeSBT")
+	const badgeSBT = await BadgeSBT.deploy(
+		spaceFactory.address,
+		process.env.SIGNER_ADDRESS
+	)
 
-	const Lock = await ethers.getContractFactory("Lock")
-	const lock = await Lock.deploy(unlockTime, { value: lockedAmount })
+	await badgeSBT.deployed()
+	console.log(`BadgeSBT is deployed to ${badgeSBT.address}`)
 
-	await lock.deployed()
+	console.log("Setting BadgeSBT address to Space Factory...")
+	await spaceFactory.setBadgeSBTAddress(badgeSBT.address)
+
+	console.log(`Deploying BaseSpaceshipNFT...`)
+
+	const BaseSpaceshipNFT = await ethers.getContractFactory("BaseSpaceshipNFT")
+	const baseSpaceshipNFT = await BaseSpaceshipNFT.deploy(spaceFactory.address)
+
+	await baseSpaceshipNFT.deployed()
+	console.log(`BaseSpaceshipNFT is deployed to ${baseSpaceshipNFT.address}`)
+
+	console.log("Setting BaseSpaceshipNFT address to Space Factory...")
+	await spaceFactory.setBadgeSBTAddress(baseSpaceshipNFT.address)
+
+	console.log(`Deploying PartsNFT...`)
+
+	const PartsNFT = await ethers.getContractFactory("PartsNFT")
+	const partsNFT = await PartsNFT.deploy(spaceFactory.address)
+
+	await partsNFT.deployed()
+	console.log(`PartsNFT is deployed to ${partsNFT.address}`)
+
+	console.log("Setting PartsNFT address to Space Factory...")
+	await spaceFactory.setPartsNFTAddress(partsNFT.address)
+
+	console.log(`Deploying ScoreNFT...`)
+
+	const ScoreNFT = await ethers.getContractFactory("ScoreNFT")
+	const scoreNFT = await ScoreNFT.deploy(spaceFactory.address)
+
+	await scoreNFT.deployed()
+	console.log(`ScoreNFT is deployed to ${scoreNFT.address}`)
+
+	console.log("Setting ScoreNFT address to Space Factory...")
+	await spaceFactory.setScoreNFTAddress(scoreNFT.address)
+
+	console.log(`Deploying SpaceshipNFT...`)
+
+	const SpaceshipNFT = await ethers.getContractFactory("SpaceshipNFT")
+	const spaceshipNFT = await SpaceshipNFT.deploy(spaceFactory.address)
+
+	await spaceshipNFT.deployed()
+	console.log(`SpaceshipNFT is deployed to ${spaceshipNFT.address}`)
+
+	console.log("Setting SpaceshipNFT address to Space Factory...")
+	await spaceFactory.setSpaceshipNFTAddress(spaceshipNFT.address)
 
 	console.log(
-		`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+		"Success!! Account balance after deployment:",
+		(await deployer.getBalance()).toString()
 	)
 }
 
