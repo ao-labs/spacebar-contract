@@ -8,6 +8,7 @@
     "test": "npx hardhat test",
     "docs": "npx hardhat docgen",
     "test:report-gas": "REPORT_GAS=true npx hardhat test",
+    "deploy:polygon-testnet": "npx hardhat run scripts/deploy.ts --network polygon-mumbai",
     "deploy:arbi-mainnet": "npx hardhat run scripts/deploy.ts --network arbitrum",
     "deploy:op-mainnet": "npx hardhat run scripts/deploy.ts --network optimism",
     "deploy:arbi-testnet": "npx hardhat run scripts/deploy.ts --network arbitrum-goerli",

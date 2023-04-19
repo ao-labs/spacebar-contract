@@ -19,22 +19,28 @@ const config: HardhatUserConfig = {
 	docgen: {
 		pages: "files",
 	},
+	networks: {
+		"polygon-mumbai": {
+			url: process.env.POLYGON_MUMBAI_RPC || "",
+			accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
+		},
+	},
 	// networks: {
 	// 	arbitrum: {
 	// 		url: `https://arb1.arbitrum.io/rpc`,
-	// 		accounts: [process.env.ARBITRUM_MAINNET_ACCOUNT || ""],
+	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 	// 	},
 	// 	optimism: {
 	// 		url: `https://mainnet.optimism.io`,
-	// 		accounts: [process.env.OPTIMISM_MAINNET_ACCOUNT || ""],
+	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 	// 	},
 	// 	"arbitrum-goerli": {
 	// 		url: `https://goerli-rollup.arbitrum.io/rpc	`,
-	// 		accounts: [process.env.ARBITRUM_GOERLI_ACCOUNT || ""],
+	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 	// 	},
 	// 	"optimism-goerli": {
 	// 		url: `https://goerli.optimism.io`,
-	// 		accounts: [process.env.OPTIMISM_GOERLI_ACCOUNT || ""],
+	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 	// 	},
 	// },
 }
