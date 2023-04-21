@@ -30,9 +30,10 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
     /* ============ Events ============ */
 
     event MintBadge(
-        uint8 indexed category,
         address indexed to,
-        uint256 indexed tokenId
+        uint8 indexed category,
+        uint256 indexed tokenId,
+        BurnAuth burnAuth
     );
 
     /* ============ Errors ============ */
@@ -63,7 +64,7 @@ contract BadgeSBT is ERC721, AccessControl, IBadgeSBT {
     ) external onlyRole(SPACE_FACTORY) {
         _safeMint(to, totalSupply);
         _tokenTypes[totalSupply] = TokenType(category, _burnAuth);
-        emit MintBadge(category, to, totalSupply);
+        emit MintBadge(to, category, totalSupply, _burnAuth);
         emit Issued(msg.sender, to, totalSupply, _burnAuth);
         unchecked {
             ++totalSupply;
