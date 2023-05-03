@@ -3,16 +3,16 @@
 ## SpaceFactory
 
 This contract is responsible for minting and burning various NFTs and SBTs.
-Functions with ByAdmin suffix are designed to be called by the admin(SIGNER), so that users
+Functions with ByAdmin suffix are designed to be called by the admin(SERVICE_ADMIN_ROLE), so that users
 don't have to pay for gas fees.
 
-### SIGNER_ROLE
+### SERVICE_ADMIN_ROLE
 
 ```solidity
-bytes32 SIGNER_ROLE
+bytes32 SERVICE_ADMIN_ROLE
 ```
 
-_The constant for the signer role_
+_The constant for the service admin role_
 
 ### baseSpaceshipRentalFee
 
@@ -394,7 +394,7 @@ modifier onlySpaceshipOwner(address user, uint256 tokenId)
 ### constructor
 
 ```solidity
-constructor(address _signer, uint24[] _quantityPerPartsType, uint16 _partsMintingSuccessRate) public
+constructor(address _serviceAdmin, uint24[] _quantityPerPartsType, uint16 _partsMintingSuccessRate) public
 ```
 
 ### rentBaseSpaceship
@@ -413,7 +413,7 @@ It reverts if the base spaceship is already rented by someone else, or the addre
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | base spaceship token id |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### rentBaseSpaceshipByAdmin
 
@@ -445,7 +445,7 @@ _It extends period by baseSpaceshipAccessPeriod._
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | base spaceship token id |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### extendBaseSpaceshipByAdmin
 
@@ -479,7 +479,7 @@ For example, if partsMintingSuccessRate is 5000 and amount is 10, you can expect
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | amount | uint256 | amount of parts to mint |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### mintRandomPartsByAdmin
 
@@ -511,7 +511,7 @@ _specialPartsMintingFee must be set before minting_
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | id | uint256 | token id |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### mintSpecialPartsByAdmin
 
@@ -546,7 +546,7 @@ User must be user of base spaceship, and must own all the parts._
 | baseSpaceshipTokenId | uint256 | base spaceship token id |
 | nickname | bytes32 | nickname of the new spaceship |
 | parts | uint24[] | list of the parts to use |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### mintNewSpaceshipByAdmin
 
@@ -584,7 +584,7 @@ It will revert if user doesn't own F and G._
 | ---- | ---- | ----------- |
 | tokenId | uint256 | spaceship token id |
 | newParts | uint24[] | list of the new parts |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### updateSpaceshipPartsByAdmin
 
@@ -680,7 +680,7 @@ mint badge SBT to user
 | ---- | ---- | ----------- |
 | category | uint8 | category of the badge (ex. 1: Elite, 2: Creative etc) |
 | burnAuth | enum IERC5484.BurnAuth | burn authorization of the badge. See IERC5484 |
-| signature | struct SpaceFactory.Signature | signature from the signer |
+| signature | struct SpaceFactory.Signature | signature from the service admin |
 
 ### mintBadgeByAdmin
 

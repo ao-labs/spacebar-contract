@@ -12,13 +12,14 @@ import "./interfaces/IScoreNFT.sol";
 // @TODO implement upgradeability
 /// @title Space Factory contract.
 /// @notice This contract is responsible for minting and burning various NFTs and SBTs.
-/// Functions with ByAdmin suffix are designed to be called by the admin(SIGNER), so that users
+/// Functions with ByAdmin suffix are designed to be called by the admin(SERVICE_ADMIN_ROLE), so that users
 /// don't have to pay for gas fees.
 contract SpaceFactory is AccessControl {
     /* ============ Variables ============ */
 
-    /// @dev The constant for the signer role
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    /// @dev The constant for the service admin role
+    bytes32 public constant SERVICE_ADMIN_ROLE =
+        keccak256("SERVICE_ADMIN_ROLE");
 
     uint public baseSpaceshipRentalFee;
     uint public baseSpaceshipExtensionFee;
@@ -130,7 +131,7 @@ contract SpaceFactory is AccessControl {
 
     // @TODO upgradeable init function
     constructor(
-        address _signer,
+        address _serviceAdmin,
         uint24[] memory _quantityPerPartsType,
         uint16 _partsMintingSuccessRate
     ) {
@@ -138,7 +139,7 @@ contract SpaceFactory is AccessControl {
             revert InvalidRate();
         }
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(SIGNER_ROLE, _signer);
+        _grantRole(SERVICE_ADMIN_ROLE, _serviceAdmin);
         _setQuantityPerPartsType(_quantityPerPartsType);
         baseSpaceshipAccessPeriod = 7 days;
         partsMintingSuccessRate = _partsMintingSuccessRate;
@@ -154,7 +155,7 @@ contract SpaceFactory is AccessControl {
     /// @dev Rent expires at current time + baseSpaceshipAccessPeriod.
     /// It reverts if the base spaceship is already rented by someone else, or the address already has one.
     /// @param tokenId base spaceship token id
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function rentBaseSpaceship(
         uint tokenId,
         Signature calldata signature
@@ -182,7 +183,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, baseSpaceshipRentalFee)
     {
         _rentBaseSpaceship(tokenId, user);
@@ -191,7 +192,7 @@ contract SpaceFactory is AccessControl {
     /// @notice extend the rental period of a base spaceship
     /// @dev It extends period by baseSpaceshipAccessPeriod.
     /// @param tokenId base spaceship token id
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function extendBaseSpaceship(
         uint tokenId,
         Signature calldata signature
@@ -217,7 +218,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, baseSpaceshipExtensionFee)
     {
         _extendBaseSpaceshipAccess(tokenId, user);
@@ -228,7 +229,7 @@ contract SpaceFactory is AccessControl {
     /// Based on partsMintingSuccessRate (0-10000), it will mint successfully or not.
     /// For example, if partsMintingSuccessRate is 5000 and amount is 10, you can expect 5 parts will be minted.
     /// @param amount amount of parts to mint
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function mintRandomParts(
         uint amount,
         Signature calldata signature
@@ -264,7 +265,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, partsMintingFee)
         returns (uint[] memory ids)
     {
@@ -284,7 +285,7 @@ contract SpaceFactory is AccessControl {
     /// @notice mint special parts
     /// @dev specialPartsMintingFee must be set before minting
     /// @param id token id
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function mintSpecialParts(
         uint id,
         Signature calldata signature
@@ -310,7 +311,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, specialPartsMintingFee[id])
     {
         if (specialPartsMintingFee[id] == 0) {
@@ -326,7 +327,7 @@ contract SpaceFactory is AccessControl {
     /// @param baseSpaceshipTokenId base spaceship token id
     /// @param nickname nickname of the new spaceship
     /// @param parts list of the parts to use
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function mintNewSpaceship(
         uint256 baseSpaceshipTokenId,
         bytes32 nickname,
@@ -359,7 +360,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, spaceshipMintingFee)
     {
         _mintNewSpaceship(user, baseSpaceshipTokenId, nickname, parts);
@@ -372,7 +373,7 @@ contract SpaceFactory is AccessControl {
     /// It will revert if user doesn't own F and G.
     /// @param tokenId spaceship token id
     /// @param newParts list of the new parts
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function updateSpaceshipParts(
         uint tokenId,
         uint24[] calldata newParts,
@@ -400,7 +401,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         onlySpaceshipOwner(user, tokenId)
         collectFee(user, spaceshipUpdatingFee)
     {
@@ -437,7 +438,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         onlySpaceshipOwner(user, tokenId)
         collectFee(user, spaceshipNicknameUpdatingFee)
     {
@@ -470,7 +471,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, scoreMintingFee)
     {
         scoreNFT.mintScore(user, category, score);
@@ -479,7 +480,7 @@ contract SpaceFactory is AccessControl {
     /// @notice mint badge SBT to user
     /// @param category category of the badge (ex. 1: Elite, 2: Creative etc)
     /// @param burnAuth burn authorization of the badge. See IERC5484
-    /// @param signature signature from the signer
+    /// @param signature signature from the service admin
     function mintBadge(
         uint8 category,
         IBadgeSBT.BurnAuth burnAuth,
@@ -503,7 +504,7 @@ contract SpaceFactory is AccessControl {
     )
         external
         addressCheck(user)
-        onlyRole(SIGNER_ROLE)
+        onlyRole(SERVICE_ADMIN_ROLE)
         collectFee(user, badgeMintingFee[category])
     {
         badgeSBT.mintBadge(user, category, burnAuth);
@@ -830,13 +831,13 @@ contract SpaceFactory is AccessControl {
         Signature calldata signature
     ) internal view {
         // @TODO apply later with signed typed data
-        // address signer = ecrecover(
+        // address serviceAdmin = ecrecover(
         //     digest,
         //     signature.v,
         //     signature.r,
         //     signature.s
         // );
-        // if (!hasRole(SIGNER_ROLE, signer)) {
+        // if (!hasRole(SERVICE_ADMIN_ROLE, serviceAdmin)) {
         //     revert InvalidSignature();
         // }
     }

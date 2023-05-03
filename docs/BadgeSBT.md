@@ -41,7 +41,7 @@ struct TokenType {
 ### MintBadge
 
 ```solidity
-event MintBadge(uint8 category, address to, uint256 tokenId)
+event MintBadge(address to, uint8 category, uint256 tokenId, enum IERC5484.BurnAuth burnAuth)
 ```
 
 ### CanNotTransfer

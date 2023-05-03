@@ -10,7 +10,7 @@ async function main() {
 	console.log(`Deploying SpaceFactory...`)
 	const SpaceFactory = await ethers.getContractFactory("SpaceFactory")
 	const spaceFactory = await SpaceFactory.deploy(
-		process.env.SIGNER_ADDRESS,
+		process.env.SERVICE_ADMIN_ADDRESS,
 		JSON.parse(process.env.QUANTYTY_PER_PARTS_TYPE || ""),
 		process.env.PARTS_MINTING_SUCCESS_RATE
 	)
@@ -20,7 +20,7 @@ async function main() {
 	const BadgeSBT = await ethers.getContractFactory("BadgeSBT")
 	const badgeSBT = await BadgeSBT.deploy(
 		spaceFactory.address,
-		process.env.SIGNER_ADDRESS
+		process.env.SERVICE_ADMIN_ADDRESS
 	)
 
 	await badgeSBT.deployed()
