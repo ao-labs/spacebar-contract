@@ -19,7 +19,7 @@ contract SpaceFactoryTest is Test {
     ScoreNFT scoreNFT;
     BadgeSBT badgeSBT;
     AirToken airToken;
-    address signer;
+    address serviceAdmin;
     address feeCollector;
     address userA;
     address userB;
@@ -32,12 +32,12 @@ contract SpaceFactoryTest is Test {
     event UpdateSpaceship(uint indexed id, uint24[] parts, bytes32 nickname);
 
     function setUp() public {
-        signer = vm.addr(1);
+        serviceAdmin = vm.addr(1);
         feeCollector = vm.addr(2);
         userA = vm.addr(3);
         userB = vm.addr(4);
         spaceFactory = new SpaceFactory(
-            signer,
+            serviceAdmin,
             quantityPerPartsType,
             partsMintingSuccessRate
         );
@@ -46,7 +46,7 @@ contract SpaceFactoryTest is Test {
         spaceshipNFT = new SpaceshipNFT(address(spaceFactory));
         partsNFT = new PartsNFT(address(spaceFactory));
         scoreNFT = new ScoreNFT(address(spaceFactory));
-        badgeSBT = new BadgeSBT(address(spaceFactory), signer);
+        badgeSBT = new BadgeSBT(address(spaceFactory), serviceAdmin);
         spaceFactory.setBaseSpaceshipNFTAddress(baseSpaceshipNFT);
         spaceFactory.setSpaceshipNFTAddress(spaceshipNFT);
         spaceFactory.setPartsNFTAddress(partsNFT);
@@ -76,7 +76,7 @@ contract SpaceFactoryTest is Test {
     function test_rentBaseSpaceshipByAdmin(uint tokenId) public {
         uint256 maxSupply = baseSpaceshipNFT.MAXIMUM_SUPPLY();
         tokenId = bound(tokenId, 0, maxSupply - 1);
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         spaceFactory.rentBaseSpaceshipByAdmin(tokenId, userA);
         assertEq(baseSpaceshipNFT.userOf(tokenId), userA);
         assertEq(baseSpaceshipNFT.ownerOf(tokenId), address(spaceFactory));
@@ -109,7 +109,7 @@ contract SpaceFactoryTest is Test {
         assertEq(airToken.balanceOf(userA), tokenAmount);
         vm.prank(userA);
         airToken.approve(address(spaceFactory), baseSpaceshipRentalFee);
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.rentBaseSpaceshipByAdmin(tokenId, userA);
         assertEq(baseSpaceshipNFT.userOf(tokenId), userA);
         assertEq(baseSpaceshipNFT.ownerOf(tokenId), address(spaceFactory));
@@ -133,7 +133,7 @@ contract SpaceFactoryTest is Test {
 
     function test_rentBaseSpaceshipWhenNotAvailable() public {
         uint tokenId = 0;
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.rentBaseSpaceshipByAdmin(tokenId, userA);
         assertEq(baseSpaceshipNFT.userOf(tokenId), userA);
         vm.expectRevert(
@@ -153,7 +153,7 @@ contract SpaceFactoryTest is Test {
         uint256 maxSupply = baseSpaceshipNFT.MAXIMUM_SUPPLY();
         tokenId = bound(tokenId, 0, maxSupply - 1);
         tokenId2 = bound(tokenId, 0, maxSupply - 1);
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.rentBaseSpaceshipByAdmin(tokenId, userA);
         assertEq(baseSpaceshipNFT.userOf(tokenId), userA);
         if (tokenId == tokenId2) {
@@ -194,7 +194,7 @@ contract SpaceFactoryTest is Test {
         uint tokenId = 0;
         uint64 baseSpaceshipAccessPeriod = spaceFactory
             .baseSpaceshipAccessPeriod();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         uint currentTime = block.timestamp;
         spaceFactory.rentBaseSpaceshipByAdmin(tokenId, userA);
         assertEq(
@@ -295,7 +295,7 @@ contract SpaceFactoryTest is Test {
     ) public {
         amount = bound(amount, 1, 1000);
         vm.warp(timestamp);
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         uint[] memory ids = spaceFactory.mintRandomPartsByAdmin(amount, userA);
 
         for (uint i = 0; i < ids.length; i++) {
@@ -321,7 +321,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.setPartsMintingSuccessRate(partsMintingSuccessRate / 2); //50%
 
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         uint[] memory ids = spaceFactory.mintRandomPartsByAdmin(amount, userA);
 
         for (uint i = 0; i < ids.length; i++) {
@@ -352,7 +352,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.setPartsMintingSuccessRate(partsMintingSuccessRate / 10); //10%
 
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         uint[] memory ids = spaceFactory.mintRandomPartsByAdmin(amount, userA);
 
         for (uint i = 0; i < ids.length; i++) {
@@ -384,7 +384,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.setPartsMintingSuccessRate(partsMintingSuccessRate); //100%
 
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         uint[] memory ids = spaceFactory.mintRandomPartsByAdmin(amount, userA);
 
         for (uint i = 0; i < ids.length; i++) {
@@ -447,7 +447,7 @@ contract SpaceFactoryTest is Test {
             fee1 + fee2 + fee3 + fee4 + fee5
         );
 
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.mintSpecialPartsByAdmin(id1, userA);
         assertEq(airToken.balanceOf(spaceFactory.feeCollector()), fee1);
         spaceFactory.mintSpecialPartsByAdmin(id2, userA);
@@ -585,7 +585,7 @@ contract SpaceFactoryTest is Test {
         partsArray[4] = uint24(parts5);
 
         vm.stopPrank();
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         spaceFactory.mintNewSpaceshipByAdmin(
             baseSpaceshipId,
             nickname,
@@ -735,7 +735,7 @@ contract SpaceFactoryTest is Test {
         partsArray[2] = newPartsArray[2];
         partsArray[3] = newPartsArray[3];
 
-        vm.prank(signer);
+        vm.prank(serviceAdmin);
         vm.expectEmit(true, true, true, true);
         emit UpdateSpaceship(0, partsArray, "");
         spaceFactory.updateSpaceshipPartsByAdmin(0, partsArray, userA);
@@ -862,7 +862,7 @@ contract SpaceFactoryTest is Test {
         );
 
         vm.stopPrank();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.updateSpaceshipNicknameByAdmin(0, newNickname, userA);
         assertEq(spaceshipNFT.getNickname(0), newNickname);
     }
@@ -891,7 +891,7 @@ contract SpaceFactoryTest is Test {
         uint8 category = 1;
         uint88 score = 100;
 
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.mintScoreByAdmin(category, score, userA);
 
         assertEq(scoreNFT.balanceOf(userA), 1);
@@ -945,7 +945,7 @@ contract SpaceFactoryTest is Test {
         uint8 category = 1;
         IERC5484.BurnAuth burnAuth = IERC5484.BurnAuth.Both;
 
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         spaceFactory.mintBadgeByAdmin(category, burnAuth, userA);
 
         assertEq(badgeSBT.balanceOf(userA), 1);
@@ -992,7 +992,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.mintBadge(category, burnAuth, generateSignatrue());
         vm.stopPrank();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         badgeSBT.burn(1);
     }
 
@@ -1009,7 +1009,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.mintBadge(category, burnAuth, generateSignatrue());
         vm.stopPrank();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         vm.expectRevert();
         badgeSBT.burn(1);
         assertEq(badgeSBT.balanceOf(userA), 2);
@@ -1028,7 +1028,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.mintBadge(category, burnAuth, generateSignatrue());
         vm.stopPrank();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         badgeSBT.burn(1);
         assertEq(badgeSBT.balanceOf(userA), 1);
     }
@@ -1045,7 +1045,7 @@ contract SpaceFactoryTest is Test {
 
         spaceFactory.mintBadge(category, burnAuth, generateSignatrue());
         vm.stopPrank();
-        vm.startPrank(signer);
+        vm.startPrank(serviceAdmin);
         vm.expectRevert();
         badgeSBT.burn(1);
         assertEq(badgeSBT.balanceOf(userA), 1);
