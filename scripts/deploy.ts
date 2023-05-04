@@ -38,7 +38,7 @@ async function main() {
 	console.log(`BaseSpaceshipNFT is deployed to ${baseSpaceshipNFT.address}`)
 
 	console.log("Setting BaseSpaceshipNFT address to Space Factory...")
-	await spaceFactory.setBadgeSBTAddress(baseSpaceshipNFT.address)
+	await spaceFactory.setBaseSpaceshipNFTAddress(baseSpaceshipNFT.address)
 
 	console.log(`Deploying PartsNFT...`)
 
