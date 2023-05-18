@@ -82,6 +82,37 @@ contract SpaceFactoryTest is Test {
         assertEq(baseSpaceshipNFT.ownerOf(tokenId), address(spaceFactory));
     }
 
+    function test_rentAllBaseSpaceships() public {
+        uint256 maxSupply = baseSpaceshipNFT.MAXIMUM_SUPPLY();
+        vm.startPrank(serviceAdmin);
+        for (uint i = 0; i < maxSupply; i++) {
+            spaceFactory.rentBaseSpaceshipByAdmin(i, vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.userOf(i), vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.ownerOf(i), address(spaceFactory));
+        }
+    }
+
+    function test_rentAllBaseSpaceshipsAgainAfterExpiration() public {
+        uint256 maxSupply = baseSpaceshipNFT.MAXIMUM_SUPPLY();
+        vm.startPrank(serviceAdmin);
+        for (uint i = 0; i < maxSupply; i++) {
+            spaceFactory.rentBaseSpaceshipByAdmin(i, vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.userOf(i), vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.ownerOf(i), address(spaceFactory));
+        }
+        uint64 baseSpaceshipAccessPeriod = spaceFactory
+            .baseSpaceshipAccessPeriod();
+        uint currentTime = block.timestamp;
+        vm.warp(baseSpaceshipAccessPeriod + currentTime + 1);
+
+        for (uint i = 0; i < maxSupply; i++) {
+            assertEq(baseSpaceshipNFT.userOf(i), address(0));
+            spaceFactory.rentBaseSpaceshipByAdmin(i, vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.userOf(i), vm.addr(i + 10));
+            assertEq(baseSpaceshipNFT.ownerOf(i), address(spaceFactory));
+        }
+    }
+
     function test_rentBaseSpaceshipWithAir() public {
         uint256 tokenId = 0;
         uint256 tokenAmount = 100;
