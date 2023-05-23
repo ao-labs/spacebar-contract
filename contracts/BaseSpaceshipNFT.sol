@@ -31,6 +31,10 @@ contract BaseSpaceshipNFT is ERC721Consecutive, IBaseSpaceshipNFT {
     constructor(address spaceFactory) ERC721("Base Spaceship", "BASE") {
         _mintConsecutive(spaceFactory, MAXIMUM_SUPPLY);
         totalSupply = MAXIMUM_SUPPLY;
+        //Without this event, Alchemy/Infura does not detect tokens
+        for (uint i = 0; i < totalSupply; i++) {
+            emit Transfer(address(0), spaceFactory, i);
+        }
     }
 
     /* ============ External Functions ============ */
