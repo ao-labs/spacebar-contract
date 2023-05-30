@@ -32,3 +32,22 @@ SERVICE_ADMIN_ADDRESS="0x9c800e9CD26B75E1538b7CD9668A127D07118A0C"
 QUANTYTY_PER_PARTS_TYPE=["50","50","50","50","50"]
 PARTS_MINTING_SUCCESS_RATE="10000"
 ```
+
+## Error Signatures
+
+### SpaceFactory
+f5805b24: AlreadyUserOfBaseSpaceship()
+f9e97157: ContractNotAvailable()
+ef776216: ExceedsMaximumLength()
+e6c4247b: InvalidAddress()
+2c5211c6: InvalidAmount()
+dfa1a408: InvalidId()
+ad67865d: InvalidListLength()
+b99ac7d3: InvalidPartsLength()
+6a43f8d1: InvalidRate()
+8baa579f: InvalidSignature()
+314286d9: InvalidTypeOrder()
+cb7eee8f: NotTokenOnwer()
+0ed8054f: NotUserOfBaseSpaceship(uint256,address)
+7e12c974: NotWithinExtensionPeriod(uint256,uint256)
+635c0284: UnavailableBaseSpaceship(uint256,address)
