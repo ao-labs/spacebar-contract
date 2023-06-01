@@ -229,6 +229,12 @@ event SetPartsMintingSuccessRate(uint16 rate)
 event SetQuantityPerPartsType(uint24[] quantityPerPartsType)
 ```
 
+### ExpireBaseSpaceshipByAdmin
+
+```solidity
+event ExpireBaseSpaceshipByAdmin(address user, uint256 tokenId)
+```
+
 ### SetBaseSpaceshipRentalFee
 
 ```solidity
@@ -428,6 +434,20 @@ admin function for renting a base spaceship
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | base spaceship token id |
+| user | address | user address |
+
+### expireBaseSpaceshipByAdmin
+
+```solidity
+function expireBaseSpaceshipByAdmin(address user) external
+```
+
+expires user's base spaceship
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
 | user | address | user address |
 
 ### extendBaseSpaceship
