@@ -113,6 +113,21 @@ contract SpaceFactoryTest is Test {
         }
     }
 
+    function test_rentBaseSpaceship() public {
+        vm.prank(userA);
+        spaceFactory.rentBaseSpaceship(0, generateSignatrue());
+        assertEq(baseSpaceshipNFT.userOf(0), userA);
+        vm.prank(userB);
+        spaceFactory.rentBaseSpaceship(1, generateSignatrue());
+        assertEq(baseSpaceshipNFT.userOf(1), userB);
+
+        vm.startPrank(serviceAdmin);
+        spaceFactory.expireBaseSpaceshipByAdmin(userA);
+        spaceFactory.expireBaseSpaceshipByAdmin(userB);
+        assertEq(baseSpaceshipNFT.userOf(0), address(0));
+        assertEq(baseSpaceshipNFT.userOf(1), address(0));
+    }
+
     function test_rentBaseSpaceshipWithAir() public {
         uint256 tokenId = 0;
         uint256 tokenAmount = 100;

@@ -75,6 +75,10 @@ contract SpaceFactory is AccessControl {
     event SetFeeCollectorAddress(address indexed newAddress);
     event SetPartsMintingSuccessRate(uint16 rate);
     event SetQuantityPerPartsType(uint24[] quantityPerPartsType);
+    event ExpireBaseSpaceshipByAdmin(
+        address indexed user,
+        uint indexed tokenId
+    );
 
     event SetBaseSpaceshipRentalFee(uint fee);
     event SetBaseSpaceshipExtensionFee(uint fee);
@@ -187,6 +191,23 @@ contract SpaceFactory is AccessControl {
         collectFee(user, baseSpaceshipRentalFee)
     {
         _rentBaseSpaceship(tokenId, user);
+    }
+
+    /// @notice expires user's base spaceship
+    /// @param user user address
+    function expireBaseSpaceshipByAdmin(
+        address user
+    ) external addressCheck(user) onlyRole(SERVICE_ADMIN_ROLE) {
+        uint tokenId = baseSpaceshipUserMap[user];
+        if (baseSpaceshipNFT.userOf(tokenId) == address(0)) {
+            revert NotUserOfBaseSpaceship(
+                tokenId,
+                baseSpaceshipNFT.userOf(tokenId)
+            );
+        }
+        delete baseSpaceshipUserMap[user];
+        baseSpaceshipNFT.setUser(tokenId, user, 0);
+        emit ExpireBaseSpaceshipByAdmin(user, tokenId);
     }
 
     /// @notice extend the rental period of a base spaceship
