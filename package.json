@@ -9,7 +9,8 @@
     "docs": "npx hardhat docgen",
     "test:report-gas": "forge test -vvv --gas-report",
     "deploy:goerli": "npx hardhat run scripts/deploy_v1.ts --network goerli",
-    "upgrade:goerli": "npx hardhat run scripts/upgrade_v2.ts --network goerli"
+    "upgrade:goerli": "npx hardhat run scripts/upgrade_v2.ts --network goerli",
+    "hashes": "solc --hashes --include-path node_modules/ --base-path . contracts/SpaceFactoryV1.sol"
   },
   "author": "AO Labs",
   "license": "ISC",
