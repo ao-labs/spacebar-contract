@@ -12,23 +12,23 @@ error OnlyOneProtoShipAtATime()
 error OnlyNFTOwner()
 ```
 
-## ReachedMaxSupply
-
-```solidity
-error ReachedMaxSupply()
-```
-
 ## InvalidProtoShip
 
 ```solidity
 error InvalidProtoShip()
 ```
 
+## AlreadyHaveSpaceshipNFTUniverse1
+
+```solidity
+error AlreadyHaveSpaceshipNFTUniverse1()
+```
+
 ## SpaceFactoryV1
 
 This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
 These assets currently include Spaceship NFTs from Universe1, but can be extended to support many more.
-This is because the contract utilizes the ERC1967 proxy standard, enabling it to be
+This is because the contract utilizes the ERC1967 proxy + UUPSUpgradeable, enabling it to be
 upgraded in the future to support additional features and asset types.
 
 ### SERVICE_ADMIN_ROLE
@@ -38,20 +38,6 @@ bytes32 SERVICE_ADMIN_ROLE
 ```
 
 _The constant for the service admin role_
-
-### MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
-
-```solidity
-uint16 MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
-```
-
-_Circulalting supply of Spaceship NFT from Universe1 is fixed_
-
-### currentSupply
-
-```solidity
-uint16 currentSupply
-```
 
 ### tokenBoundImplementation
 
@@ -83,16 +69,24 @@ mapping(address => bool) hasProtoShip
 event SetSpaceshipNFTUniverse1(address contractAddress)
 ```
 
-### constructor
+### initialize
 
 ```solidity
-constructor(address defaultAdmin, address serviceAdmin, uint16 maxSpaceshipUniverse1CirculatingSupply, contract IERC6551Registry _tokenBoundRegistry, contract IERC6551Account _tokenBoundImplementation) public
+function initialize(address defaultAdmin, address serviceAdmin, contract IERC6551Registry _tokenBoundRegistry, contract IERC6551Account _tokenBoundImplementation) public
 ```
+
+### setSpaceshipNFTUniverse1
+
+```solidity
+function setSpaceshipNFTUniverse1(address contractAddress) external
+```
+
+_spaceshipNFTUniverse1 address should only be set once and never change_
 
 ### deployTBAAndMintProtoShip
 
 ```solidity
-function deployTBAAndMintProtoShip(address tokenContract, uint256 tokenId) external returns (address)
+function deployTBAAndMintProtoShip(address tokenContract, uint256 tokenId) external virtual returns (address)
 ```
 
 Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
@@ -110,7 +104,7 @@ already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime)._
 ### burnProtoShip
 
 ```solidity
-function burnProtoShip(uint256 tokenId) external
+function burnProtoShip(uint256 tokenId) external virtual
 ```
 
 Burns a Proto-Ship from the address when it fails to meet requirements.
@@ -126,7 +120,7 @@ _Only service admin can call this function. The function will revert if the toke
 ### upgradeToOwnerShip
 
 ```solidity
-function upgradeToOwnerShip(uint256 tokenId) external
+function upgradeToOwnerShip(uint256 tokenId) external virtual
 ```
 
 Upgrades Proto-Ship to Owner-Ship(aka. unlock).
@@ -139,33 +133,33 @@ _Only service admin can call this function. The function will revert if the toke
 | ---- | ---- | ----------- |
 | tokenId | uint256 | Token id to upgrade |
 
-### setSpaceshipNFTUniverse1
+### _authorizeUpgrade
 
 ```solidity
-function setSpaceshipNFTUniverse1(address contractAddress) external
+function _authorizeUpgrade(address) internal
 ```
 
 ### _deployOrGetTokenBoundAccount
 
 ```solidity
-function _deployOrGetTokenBoundAccount(address tokenContract, uint256 tokenId) internal returns (address)
+function _deployOrGetTokenBoundAccount(address tokenContract, uint256 tokenId) internal virtual returns (address)
 ```
 
 ### _mintProtoShip
 
 ```solidity
-function _mintProtoShip(address to) internal
+function _mintProtoShip(address to) internal virtual
 ```
 
 ### _burnProtoShip
 
 ```solidity
-function _burnProtoShip(uint256 tokenId) internal
+function _burnProtoShip(uint256 tokenId) internal virtual
 ```
 
 ### _upgradeToOwnerShip
 
 ```solidity
-function _upgradeToOwnerShip(uint256 tokenId) internal
+function _upgradeToOwnerShip(uint256 tokenId) internal virtual
 ```
 

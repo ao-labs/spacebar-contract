@@ -12,13 +12,14 @@ contract SpaceshipNFTUniverse1Test is Test {
     address factory;
     address[] users;
     uint256 totalUser = 5;
+    uint16 maxSupply = 100;
 
     function setUp() public {
         factory = vm.addr(1);
         for (uint256 i = 0; i < totalUser; i++) {
             users.push(vm.addr(i + 2));
         }
-        spaceship = new SpaceshipNFTUniverse1(factory);
+        spaceship = new SpaceshipNFTUniverse1(factory, maxSupply);
     }
 
     function testMint() public {

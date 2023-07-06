@@ -4,6 +4,8 @@ import "@nomicfoundation/hardhat-toolbox"
 import "@nomiclabs/hardhat-ethers"
 import "@nomiclabs/hardhat-etherscan"
 import "@nomicfoundation/hardhat-foundry"
+import "@openzeppelin/hardhat-upgrades"
+import "@typechain/hardhat"
 import "solidity-docgen"
 import * as dotenv from "dotenv"
 
@@ -20,29 +22,14 @@ const config: HardhatUserConfig = {
 		pages: "files",
 	},
 	networks: {
-		"polygon-mumbai": {
-			url: process.env.POLYGON_MUMBAI_RPC || "",
+		goerli: {
+			url: process.env.GOERLI_RPC || "",
 			accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 		},
 	},
-	// networks: {
-	// 	arbitrum: {
-	// 		url: `https://arb1.arbitrum.io/rpc`,
-	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
-	// 	},
-	// 	optimism: {
-	// 		url: `https://mainnet.optimism.io`,
-	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
-	// 	},
-	// 	"arbitrum-goerli": {
-	// 		url: `https://goerli-rollup.arbitrum.io/rpc	`,
-	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
-	// 	},
-	// 	"optimism-goerli": {
-	// 		url: `https://goerli.optimism.io`,
-	// 		accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
-	// 	},
-	// },
+	etherscan: {
+		apiKey: process.env.ETHERSCAN_API_KEY,
+	},
 }
 
 export default config
