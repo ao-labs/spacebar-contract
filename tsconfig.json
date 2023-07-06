@@ -5,8 +5,9 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"outDir": "dist",
-		"typeRoots": ["./typechain", "./node_modules/@types"]
+		"typeRoots": ["./typechain", "./node_modules/@types"],
+		"rootDirs": ["./src", "./scripts", "./test"]
 	},
-	"include": ["./test"],
+	"include": ["./test", "./src", "./scripts"],
 	"files": ["./hardhat.config.ts"]
 }

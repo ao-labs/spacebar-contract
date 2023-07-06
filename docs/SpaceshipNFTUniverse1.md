@@ -12,6 +12,12 @@ error TokenLocked()
 error OnlyLockedToken()
 ```
 
+## ReachedMaxSupply
+
+```solidity
+error ReachedMaxSupply()
+```
+
 ## SpaceshipNFTUniverse1
 
 Spaceship NFT for Spacebar Universe 1
@@ -20,6 +26,20 @@ certain conditions to gain full ownership of a spaceship NFT.
 Until these conditions are met, the spaceship is locked and cannot be transferred.
 Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
+
+### MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
+
+```solidity
+uint16 MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
+```
+
+_Circulalting supply of Spaceship NFT from Universe1 is fixed_
+
+### currentSupply
+
+```solidity
+uint16 currentSupply
+```
 
 ### nextTokenId
 
@@ -44,7 +64,7 @@ mapping(uint256 => bool) unlocked
 ### constructor
 
 ```solidity
-constructor(address spaceFactory) public
+constructor(address spaceFactory, uint16 maxSpaceshipUniverse1CirculatingSupply) public
 ```
 
 ### mint

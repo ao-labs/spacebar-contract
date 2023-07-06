@@ -8,11 +8,8 @@
     "test": "forge test -vvv",
     "docs": "npx hardhat docgen",
     "test:report-gas": "forge test -vvv --gas-report",
-    "deploy:polygon-testnet": "npx hardhat run scripts/deploy.ts --network polygon-mumbai",
-    "deploy:arbi-mainnet": "npx hardhat run scripts/deploy.ts --network arbitrum",
-    "deploy:op-mainnet": "npx hardhat run scripts/deploy.ts --network optimism",
-    "deploy:arbi-testnet": "npx hardhat run scripts/deploy.ts --network arbitrum-goerli",
-    "deploy:op-testnet": "npx hardhat run scripts/deploy.ts --network optimism-goerli"
+    "deploy:goerli": "npx hardhat run scripts/deploy_v1.ts --network goerli",
+    "upgrade:goerli": "npx hardhat run scripts/upgrade_v2.ts --network goerli"
   },
   "author": "AO Labs",
   "license": "ISC",
@@ -33,6 +30,8 @@
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@openzeppelin/contracts": "^4.8.1",
+    "@openzeppelin/contracts-upgradeable": "^4.9.2",
+    "@openzeppelin/hardhat-upgrades": "^1.28.0",
     "@primitivefi/hardhat-dodoc": "^0.2.3",
     "@typechain/ethers-v5": "^10.2.0",
     "@typechain/hardhat": "^6.1.5",

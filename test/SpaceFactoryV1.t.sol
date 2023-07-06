@@ -31,14 +31,14 @@ contract SpaceFactoryV1Test is Test {
 
         registry = new ERC6551Registry();
         implementation = new MockERC6551Account();
-        factory = new SpaceFactoryV1(
+        factory = new SpaceFactoryV1();
+        factory.initialize(
             defaultAdmin,
             serviceAdmin,
-            maxSupply,
             registry,
             implementation
         );
-        spaceship = new SpaceshipNFTUniverse1(address(factory));
+        spaceship = new SpaceshipNFTUniverse1(address(factory), maxSupply);
         vm.prank(defaultAdmin);
         factory.setSpaceshipNFTUniverse1(address(spaceship));
     }
@@ -128,25 +128,25 @@ contract SpaceFactoryV1Test is Test {
 
     function testMaxSupply() public {
         assertEq(
-            factory.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY(),
+            spaceship.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY(),
             maxSupply
         );
         for (uint256 i = 0; i < maxSupply; i++) {
             vm.prank(users[i]);
             factory.deployTBAAndMintProtoShip(address(externalERC721), i);
         }
-        assertEq(factory.currentSupply(), maxSupply);
+        assertEq(spaceship.currentSupply(), maxSupply);
         vm.prank(users[maxSupply]);
         vm.expectRevert(ReachedMaxSupply.selector);
         factory.deployTBAAndMintProtoShip(address(externalERC721), maxSupply);
 
         vm.prank(serviceAdmin);
         factory.burnProtoShip(0);
-        assertEq(factory.currentSupply(), maxSupply - 1);
+        assertEq(spaceship.currentSupply(), maxSupply - 1);
 
         vm.prank(users[maxSupply]);
         factory.deployTBAAndMintProtoShip(address(externalERC721), maxSupply);
-        assertEq(factory.currentSupply(), maxSupply);
+        assertEq(spaceship.currentSupply(), maxSupply);
     }
 
     function testOnlyOneProtoShipPerUser() public {
@@ -172,11 +172,9 @@ contract SpaceFactoryV1Test is Test {
         factory.deployTBAAndMintProtoShip(address(externalERC721), 0);
     }
 
-    function testWrongspaceshipNFTUniverse1() public {
+    function testSettingSpaceshipNFTUniverse1Revert() public {
         vm.prank(defaultAdmin);
+        vm.expectRevert(); // should revert because it can be set only once
         factory.setSpaceshipNFTUniverse1(vm.addr(20)); //random address
-        vm.expectRevert();
-        vm.prank(users[0]);
-        factory.deployTBAAndMintProtoShip(address(externalERC721), 0);
     }
 }

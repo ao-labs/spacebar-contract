@@ -9,6 +9,7 @@ import "./interfaces/IERC4906.sol";
 /* ============ Errors ============ */
 error TokenLocked();
 error OnlyLockedToken();
+error ReachedMaxSupply();
 
 /// @title SpaceshipNFTUniverse1
 /// @notice Spaceship NFT for Spacebar Universe 1
@@ -25,6 +26,9 @@ contract SpaceshipNFTUniverse1 is
 {
     /* ============ Variables ============ */
 
+    /// @dev Circulalting supply of Spaceship NFT from Universe1 is fixed
+    uint16 public immutable MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY;
+    uint16 public currentSupply;
     uint256 public nextTokenId;
 
     /// @dev constant for the space factory role
@@ -33,12 +37,14 @@ contract SpaceshipNFTUniverse1 is
     // @dev mapping from token ID to whether it is fully owned Owner-Ship
     mapping(uint256 => bool) public unlocked;
 
-    /* ============ Structs ============ */
-
     /* ============ Constructor ============ */
 
-    constructor(address spaceFactory) ERC721("Spaceship Universe 1", "SU1") {
+    constructor(
+        address spaceFactory,
+        uint16 maxSpaceshipUniverse1CirculatingSupply
+    ) ERC721("Spaceship Universe 1", "SU1") {
         _grantRole(SPACE_FACTORY, spaceFactory);
+        MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY = maxSpaceshipUniverse1CirculatingSupply;
     }
 
     /* ============ External Functions ============ */
@@ -47,6 +53,12 @@ contract SpaceshipNFTUniverse1 is
     function mint(
         address to
     ) external onlyRole(SPACE_FACTORY) returns (uint256) {
+        if (currentSupply == MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY)
+            revert ReachedMaxSupply();
+        unchecked {
+            ++currentSupply;
+        }
+
         _mint(to, nextTokenId);
         unchecked {
             ++nextTokenId;
@@ -65,6 +77,9 @@ contract SpaceshipNFTUniverse1 is
     function burn(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
         if (unlocked[tokenId]) revert OnlyLockedToken();
         _burn(tokenId);
+        unchecked {
+            --currentSupply;
+        }
     }
 
     /// @inheritdoc ISpaceshipNFTUniverse1

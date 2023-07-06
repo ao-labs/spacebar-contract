@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/ISpaceshipNFTUniverse1.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
@@ -9,25 +11,24 @@ import "./interfaces/IERC6551Registry.sol";
 /* ============ Errors ============ */
 error OnlyOneProtoShipAtATime();
 error OnlyNFTOwner();
-error ReachedMaxSupply();
 error InvalidProtoShip();
+error AlreadyHaveSpaceshipNFTUniverse1();
 
-// @TODO implement upgradeability
 /// @title Space Factory V1
 /// @notice This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
 /// These assets currently include Spaceship NFTs from Universe1, but can be extended to support many more.
-/// This is because the contract utilizes the ERC1967 proxy standard, enabling it to be
+/// This is because the contract utilizes the ERC1967 proxy + UUPSUpgradeable, enabling it to be
 /// upgraded in the future to support additional features and asset types.
-contract SpaceFactoryV1 is AccessControl {
+contract SpaceFactoryV1 is
+    Initializable,
+    UUPSUpgradeable,
+    AccessControlUpgradeable
+{
     /* ============ Variables ============ */
 
     /// @dev The constant for the service admin role
     bytes32 public constant SERVICE_ADMIN_ROLE =
         keccak256("SERVICE_ADMIN_ROLE");
-
-    /// @dev Circulalting supply of Spaceship NFT from Universe1 is fixed
-    uint16 public immutable MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY;
-    uint16 public currentSupply;
 
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
@@ -41,18 +42,27 @@ contract SpaceFactoryV1 is AccessControl {
 
     /* ============ Constructor ============ */
 
-    constructor(
+    // @TODO uncomment this when we are ready to deploy
+    // constructor() initializer {}
+
+    function initialize(
         address defaultAdmin,
         address serviceAdmin,
-        uint16 maxSpaceshipUniverse1CirculatingSupply,
         IERC6551Registry _tokenBoundRegistry,
         IERC6551Account _tokenBoundImplementation
-    ) {
+    ) public initializer {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(SERVICE_ADMIN_ROLE, serviceAdmin);
         tokenBoundRegistry = (_tokenBoundRegistry);
         tokenBoundImplementation = (_tokenBoundImplementation);
-        MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY = maxSpaceshipUniverse1CirculatingSupply;
+    }
+
+    /// @dev spaceshipNFTUniverse1 address should only be set once and never change
+    function setSpaceshipNFTUniverse1(address contractAddress) external {
+        if (address(spaceshipNFTUniverse1) != address(0))
+            revert AlreadyHaveSpaceshipNFTUniverse1();
+        spaceshipNFTUniverse1 = ISpaceshipNFTUniverse1(contractAddress);
+        emit SetSpaceshipNFTUniverse1(contractAddress);
     }
 
     /* ============ External Functions ============ */
@@ -65,7 +75,7 @@ contract SpaceFactoryV1 is AccessControl {
     function deployTBAAndMintProtoShip(
         address tokenContract,
         uint256 tokenId
-    ) external returns (address) {
+    ) external virtual returns (address) {
         if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
             revert OnlyNFTOwner();
         }
@@ -79,7 +89,7 @@ contract SpaceFactoryV1 is AccessControl {
     /// @param tokenId Token id to burn.
     function burnProtoShip(
         uint256 tokenId
-    ) external onlyRole(SERVICE_ADMIN_ROLE) {
+    ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
         _burnProtoShip(tokenId);
     }
 
@@ -88,25 +98,20 @@ contract SpaceFactoryV1 is AccessControl {
     /// @param tokenId Token id to upgrade
     function upgradeToOwnerShip(
         uint256 tokenId
-    ) external onlyRole(SERVICE_ADMIN_ROLE) {
+    ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
         _upgradeToOwnerShip(tokenId);
-    }
-
-    /* ============ Admin Functions ============ */
-
-    function setSpaceshipNFTUniverse1(
-        address contractAddress
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        spaceshipNFTUniverse1 = ISpaceshipNFTUniverse1(contractAddress);
-        emit SetSpaceshipNFTUniverse1(contractAddress);
     }
 
     /* ============ Internal Functions ============ */
 
+    function _authorizeUpgrade(
+        address
+    ) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+
     function _deployOrGetTokenBoundAccount(
         address tokenContract,
         uint256 tokenId
-    ) internal returns (address) {
+    ) internal virtual returns (address) {
         // If account has already been created, returns the account address without calling create2.
         return
             tokenBoundRegistry.createAccount(
@@ -119,30 +124,21 @@ contract SpaceFactoryV1 is AccessControl {
             );
     }
 
-    function _mintProtoShip(address to) internal {
+    function _mintProtoShip(address to) internal virtual {
         if (hasProtoShip[to]) revert OnlyOneProtoShipAtATime();
-        if (currentSupply == MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY)
-            revert ReachedMaxSupply();
         spaceshipNFTUniverse1.mint(to);
         hasProtoShip[to] = true;
-        unchecked {
-            ++currentSupply;
-        }
     }
 
-    function _burnProtoShip(uint256 tokenId) internal {
+    function _burnProtoShip(uint256 tokenId) internal virtual {
         address protoShipOwner = spaceshipNFTUniverse1.ownerOf(tokenId);
         if (!hasProtoShip[protoShipOwner]) revert InvalidProtoShip();
 
         spaceshipNFTUniverse1.burn(tokenId);
         delete hasProtoShip[protoShipOwner];
-
-        unchecked {
-            --currentSupply;
-        }
     }
 
-    function _upgradeToOwnerShip(uint256 tokenId) internal {
+    function _upgradeToOwnerShip(uint256 tokenId) internal virtual {
         address protoShipOwner = spaceshipNFTUniverse1.ownerOf(tokenId);
         if (!hasProtoShip[protoShipOwner]) revert InvalidProtoShip();
 
