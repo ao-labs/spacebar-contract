@@ -55,11 +55,6 @@ async function main() {
 		spaceshipNFTUniverse1.address
 	)
 
-	/// @dev set SpaceshipNFTUniverse1 address to SpaceFactoryV1
-	console.log("Setting SpaceshipNFTUniverse1 address to SpaceFactoryV1...")
-
-	spaceFactoryV1.setSpaceshipNFTUniverse1(spaceshipNFTUniverse1.address)
-
 	/// @dev Verify SpaceshipNFTUniverse1
 	console.log("Verifying SpaceshipNFTUniverse1 on etherscan...")
 
@@ -95,6 +90,17 @@ async function main() {
 		address: badgeSBTUniverse1.address,
 		constructorArguments: [spaceFactoryV1.address],
 	})
+
+	/// @dev set SpaceshipNFTUniverse1 address to SpaceFactoryV1
+	console.log("Setting SpaceshipNFTUniverse1 address to SpaceFactoryV1...")
+
+	await spaceFactoryV1.setSpaceshipNFTUniverse1(spaceshipNFTUniverse1.address)
+
+	/// @dev set BadgeSBTUniverse1 address to SpaceFactoryV1
+	console.log("Setting BadgeSBTUniverse1 address to SpaceFactoryV1...")
+
+	await spaceFactoryV1.setBadgeSBTUniverse1(badgeSBTUniverse1.address)
+
 	console.log("Done!")
 }
 

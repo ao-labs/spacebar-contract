@@ -10,14 +10,14 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 error OwnershipCycle();
 
 /**
  * @title A smart contract account owned by a single ERC721 token
  */
-contract Account is
+contract ERC6551Account is
     IERC165,
     IERC1271,
     IERC6551Account,
