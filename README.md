@@ -30,6 +30,7 @@ yarn test
 
 SpaceFactoryV1Proxy : 0x54f18e1C4105343792BF0829C8Fbf95a1c4607a6  
 SpaceshipNFTUniverse1 : 0x13D583120E95CC8263EefF9E7F9623FEbc8a903a  
+BadgeSBTUniverse1:  
 
 Deployed with the arguments below
 ```
@@ -53,3 +54,9 @@ b06430b6: OnlyOneProtoShipAtATime()
 de20ed63: OnlyLockedToken()  
 794bb39b: ReachedMaxSupply()  
 5a8181f7: TokenLocked()  
+
+### BadgeSBTUniverse1
+a6c022e1: CanNotApprove()  
+1b5722f5: CanNotTransfer()  
+3f6cc768: InvalidTokenId()  
+d59ec5f1: OnlySpaceFactory()  

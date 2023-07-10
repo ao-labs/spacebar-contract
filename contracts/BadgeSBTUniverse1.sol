@@ -57,14 +57,13 @@ contract BadgeSBTUniverse1 is ERC721, IBadgeSBTUniverse1 {
         }
     }
 
-    function approve(address to, uint256 tokenId) public override {
+    /// @dev This function is not implemented.
+    function approve(address, uint256) public virtual override {
         revert CanNotApprove();
     }
 
-    function setApprovalForAll(
-        address operator,
-        bool approved
-    ) public virtual override {
+    /// @dev This function is not implemented.
+    function setApprovalForAll(address, bool) public virtual override {
         revert CanNotApprove();
     }
 
@@ -80,6 +79,7 @@ contract BadgeSBTUniverse1 is ERC721, IBadgeSBTUniverse1 {
 
     /* ============ Internal Functions ============ */
 
+    /// @dev Users cannot transfer SBTs.
     function _beforeTokenTransfer(
         address from,
         address to,
