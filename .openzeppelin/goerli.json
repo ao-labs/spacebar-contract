@@ -80,6 +80,16 @@
       "address": "0xa45F7Bc0d4BED515B5359760e6c0fBf005aa8E0C",
       "txHash": "0xb2cd51aa8ace9c2f30b892f9cd6c03ba3f01948a94bb81bccecdea74f0465012",
       "kind": "uups"
+    },
+    {
+      "address": "0x9F2b18CdAde8a2653e6B3E807a0d6215223655a4",
+      "txHash": "0x307effa81354ef4b0ad4cac9e7a216a212c5ada6e87c829be20743d4c89ee40f",
+      "kind": "uups"
+    },
+    {
+      "address": "0x6e96E6798Ca27f820418012ea994C49D210f30ef",
+      "txHash": "0xe0e476a8c11ee035580db590c7923ef10d4c8c49c46ab8da22cfcefe29e00c81",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -747,6 +757,192 @@
             "numberOfBytes": "20"
           },
           "t_contract(ISpaceshipNFTUniverse1)22588": {
+            "label": "contract ISpaceshipNFTUniverse1",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "b005d2e48d2650ab4e02510c1e525c47f28b99a059674727234b05ae2977fd6d": {
+      "address": "0x0A4b7030eAfECc3800732a422EEF978597CF9a8E",
+      "txHash": "0x3bda48b7fe35b31c980e1aa3f2c9c5f81775ed5f0c66b3f30ca7faea1547f860",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:62"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "tokenBoundImplementation",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(IERC6551Account)8263",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:36"
+          },
+          {
+            "label": "tokenBoundRegistry",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_contract(IERC6551Registry)8312",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:37"
+          },
+          {
+            "label": "spaceshipNFTUniverse1",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_contract(ISpaceshipNFTUniverse1)8367",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:38"
+          },
+          {
+            "label": "badgeSBTUniverse1",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_contract(IBadgeSBTUniverse1)8196",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:39"
+          },
+          {
+            "label": "hasProtoShip",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:41"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IBadgeSBTUniverse1)8196": {
+            "label": "contract IBadgeSBTUniverse1",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC6551Account)8263": {
+            "label": "contract IERC6551Account",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC6551Registry)8312": {
+            "label": "contract IERC6551Registry",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISpaceshipNFTUniverse1)8367": {
             "label": "contract ISpaceshipNFTUniverse1",
             "numberOfBytes": "20"
           },

@@ -28,9 +28,9 @@ yarn test
 
 ### Goerli testnet
 
-SpaceFactoryV1Proxy : 0x54f18e1C4105343792BF0829C8Fbf95a1c4607a6  
-SpaceshipNFTUniverse1 : 0x13D583120E95CC8263EefF9E7F9623FEbc8a903a  
-BadgeSBTUniverse1:  
+SpaceFactoryV1Proxy : 0x6e96E6798Ca27f820418012ea994C49D210f30ef  
+SpaceshipNFTUniverse1 : 0x2E1d80F1F7b1c8956ccD81B790AF468B738044bf  
+BadgeSBTUniverse1: 0xBE5AA22B4382D335E6Ff569c33aBc2dF037431a9  
 
 Deployed with the arguments below
 ```
@@ -45,7 +45,7 @@ MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY=1000
 ## Error Signatures
 
 ### SpaceFactoryV1
-2089db36: AlreadyHaveSpaceshipNFTUniverse1()  
+2d42c772: AddressAlreadyRegistered()  
 55c9b514: InvalidProtoShip()  
 d48af246: OnlyNFTOwner()  
 b06430b6: OnlyOneProtoShipAtATime()  
