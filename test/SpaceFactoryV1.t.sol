@@ -3,16 +3,21 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "../contracts/ERC6551/ERC6551Registry.sol";
-import "../contracts/SpaceFactoryV1.sol";
+import "../contracts/ERC6551/ERC6551Account.sol";
+import "../contracts/ERC6551/AccountProxy.sol";
 import "../contracts/SpaceshipNFTUniverse1.sol";
-import "./mocks/MockERC6551Account.sol";
+import "../contracts/SpaceFactoryV1.sol";
+import "../contracts/BadgeSBTUniverse1.sol";
 import "./mocks/MockERC721.sol";
+import "../contracts/interfaces/IERC6551Account.sol";
 
 contract SpaceFactoryV1Test is Test {
     ERC6551Registry public registry;
-    MockERC6551Account public implementation;
+    ERC6551Account public erc6551Account;
+    IERC6551Account public implementation;
     SpaceFactoryV1 public factory;
     SpaceshipNFTUniverse1 public spaceship;
+    BadgeSBTUniverse1 public badge;
     MockERC721 public externalERC721;
 
     address defaultAdmin;
@@ -30,7 +35,11 @@ contract SpaceFactoryV1Test is Test {
         }
 
         registry = new ERC6551Registry();
-        implementation = new MockERC6551Account();
+        erc6551Account = new ERC6551Account();
+        // implementation is also a proxy to ERC6551Account
+        implementation = IERC6551Account(
+            payable(address(new AccountProxy(address(erc6551Account))))
+        );
         factory = new SpaceFactoryV1();
         factory.initialize(
             defaultAdmin,
@@ -39,54 +48,93 @@ contract SpaceFactoryV1Test is Test {
             implementation
         );
         spaceship = new SpaceshipNFTUniverse1(address(factory), maxSupply);
-        vm.prank(defaultAdmin);
+        badge = new BadgeSBTUniverse1(address(factory));
+        vm.startPrank(defaultAdmin);
         factory.setSpaceshipNFTUniverse1(address(spaceship));
+        factory.setBadgeSBTUniverse1(address(badge));
+        vm.stopPrank();
     }
 
     function testDeployTBAAndMintProtoShip() public {
-        address user1TBA = registry.account(
+        address user1ProfileTBA = registry.account(
             address(implementation),
             block.chainid,
             address(externalERC721),
             0, // token id
             0 // salt
         );
-        assertEq(user1TBA.code.length, 0);
-        vm.startPrank(users[0]);
+        address user1SpaceshipTBA = registry.account(
+            address(implementation),
+            block.chainid,
+            address(spaceship),
+            0, // token id
+            0 // salt
+        );
+        assertEq(user1SpaceshipTBA.code.length, 0);
+        vm.prank(users[0]);
         factory.deployTBAAndMintProtoShip(address(externalERC721), 0);
-        assertGt(user1TBA.code.length, 0);
+        assertGt(user1SpaceshipTBA.code.length, 0);
         (
             uint256 chainId,
             address tokenContract,
             uint256 tokenId
-        ) = MockERC6551Account(payable(user1TBA)).token();
+        ) = ERC6551Account(payable(user1SpaceshipTBA)).token();
         assertEq(chainId, block.chainid);
-        assertEq(tokenContract, address(externalERC721));
+        assertEq(tokenContract, address(spaceship));
         assertEq(tokenId, 0);
-        assertEq(spaceship.ownerOf(tokenId), user1TBA);
+        assertEq(spaceship.ownerOf(tokenId), user1ProfileTBA);
+
+        address user2SpaceshipTBA = registry.account(
+            address(implementation),
+            block.chainid,
+            address(spaceship),
+            1, // token id
+            0 // salt
+        );
+        vm.prank(users[1]);
+        address user2ProfileTBA = factory.deployTBAAndMintProtoShip(
+            address(externalERC721),
+            1
+        );
+        (
+            uint256 chainId2,
+            address tokenContract2,
+            uint256 tokenId2
+        ) = ERC6551Account(payable(user2SpaceshipTBA)).token();
+        assertEq(chainId2, block.chainid);
+        assertEq(tokenContract2, address(spaceship));
+        assertEq(tokenId2, 1);
+        assertEq(spaceship.ownerOf(tokenId2), user2ProfileTBA);
     }
 
     function testMintProtoShipWhenTBAIsAlreadyDeployed() public {
-        address user1TBA = registry.createAccount(
+        address user1ProfileTBA = registry.account(
             address(implementation),
             block.chainid,
             address(externalERC721),
+            0, // token id
+            0 // salt
+        );
+        address user1SpaceshipTBA = registry.createAccount(
+            address(implementation),
+            block.chainid,
+            address(spaceship),
             0,
             0,
             abi.encodeWithSignature("initialize()")
         );
-        assertGt(user1TBA.code.length, 0);
+        assertGt(user1SpaceshipTBA.code.length, 0);
         vm.startPrank(users[0]);
         factory.deployTBAAndMintProtoShip(address(externalERC721), 0);
         (
             uint256 chainId,
             address tokenContract,
             uint256 tokenId
-        ) = MockERC6551Account(payable(user1TBA)).token();
+        ) = ERC6551Account(payable(user1SpaceshipTBA)).token();
         assertEq(chainId, block.chainid);
-        assertEq(tokenContract, address(externalERC721));
+        assertEq(tokenContract, address(spaceship));
         assertEq(tokenId, 0);
-        assertEq(spaceship.ownerOf(tokenId), user1TBA);
+        assertEq(spaceship.ownerOf(tokenId), user1ProfileTBA);
     }
 
     function testDeployTBAAndMintWhenNotNFTOwner() public {
@@ -95,7 +143,7 @@ contract SpaceFactoryV1Test is Test {
         factory.deployTBAAndMintProtoShip(address(externalERC721), 1);
 
         vm.expectRevert();
-        // random token contract address
+        // should revert with random token contract address
         factory.deployTBAAndMintProtoShip(address(vm.addr(333)), 1);
     }
 

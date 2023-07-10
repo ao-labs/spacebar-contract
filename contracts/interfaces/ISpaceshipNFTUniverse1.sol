@@ -37,4 +37,7 @@ interface ISpaceshipNFTUniverse1 is IERC721 {
     /// @dev This function will only emit an event (ERC4906)
     /// @param tokenId of the Spaceship to update metadata
     function updateMetadata(uint256 tokenId) external;
+
+    /// @dev Returns the next token id to be minted
+    function nextTokenId() external returns (uint256);
 }

@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/ISpaceshipNFTUniverse1.sol";
+import "./interfaces/IBadgeSBTUniverse1.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
@@ -13,7 +14,7 @@ import "./interfaces/ISpaceFactoryV1.sol";
 error OnlyOneProtoShipAtATime();
 error OnlyNFTOwner();
 error InvalidProtoShip();
-error AlreadyHaveSpaceshipNFTUniverse1();
+error AddressAlreadyRegistered();
 
 /// @title Space Factory V1
 /// @notice This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
@@ -35,12 +36,19 @@ contract SpaceFactoryV1 is
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
     ISpaceshipNFTUniverse1 public spaceshipNFTUniverse1;
+    IBadgeSBTUniverse1 public badgeSBTUniverse1;
 
     mapping(address => bool) public hasProtoShip;
 
     /* ============ Events ============ */
 
+    event DeployTBAAndMintProtoShip(
+        address tokenContract,
+        uint256 tokenId,
+        uint256 spaceshipId
+    );
     event SetSpaceshipNFTUniverse1(address contractAddress);
+    event SetBadgeSBTUniverse1(address contractAddress);
 
     /* ============ Constructor ============ */
 
@@ -62,9 +70,17 @@ contract SpaceFactoryV1 is
     /// @dev spaceshipNFTUniverse1 address should only be set once and never change
     function setSpaceshipNFTUniverse1(address contractAddress) external {
         if (address(spaceshipNFTUniverse1) != address(0))
-            revert AlreadyHaveSpaceshipNFTUniverse1();
+            revert AddressAlreadyRegistered();
         spaceshipNFTUniverse1 = ISpaceshipNFTUniverse1(contractAddress);
         emit SetSpaceshipNFTUniverse1(contractAddress);
+    }
+
+    /// @dev badgeSBTUniverse1 address should only be set once and never change
+    function setBadgeSBTUniverse1(address contractAddress) external {
+        if (address(badgeSBTUniverse1) != address(0))
+            revert AddressAlreadyRegistered();
+        badgeSBTUniverse1 = IBadgeSBTUniverse1(contractAddress);
+        emit SetBadgeSBTUniverse1(contractAddress);
     }
 
     /* ============ External Functions ============ */
@@ -81,9 +97,33 @@ contract SpaceFactoryV1 is
         if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
             revert OnlyNFTOwner();
         }
-        address tba = _deployOrGetTokenBoundAccount(tokenContract, tokenId);
-        _mintProtoShip(tba);
-        return tba;
+        uint256 spaceshipTokenId = spaceshipNFTUniverse1.nextTokenId();
+        address spaceshipTBA = _deployOrGetTokenBoundAccount(
+            address(spaceshipNFTUniverse1),
+            spaceshipTokenId
+        );
+
+        address profileTBA = tokenBoundRegistry.account(
+            address(tokenBoundImplementation),
+            block.chainid,
+            tokenContract,
+            tokenId,
+            0
+        );
+
+        _mintProtoShip(profileTBA);
+
+        // @TODO update after details are fixed
+        if (spaceshipTokenId < 300) {
+            badgeSBTUniverse1.mintBadge(spaceshipTBA, 0, 0);
+        }
+
+        emit DeployTBAAndMintProtoShip(
+            tokenContract,
+            tokenId,
+            spaceshipTokenId
+        );
+        return profileTBA;
     }
 
     /// @notice Burns a Proto-Ship from the address when it fails to meet requirements.
