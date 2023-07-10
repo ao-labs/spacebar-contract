@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../contracts/ERC6551Registry.sol";
+import "../contracts/ERC6551/ERC6551Registry.sol";
 import "../contracts/SpaceFactoryV1.sol";
 import "../contracts/BadgeSBTUniverse1.sol";
 import "../contracts/SpaceshipNFTUniverse1.sol";
