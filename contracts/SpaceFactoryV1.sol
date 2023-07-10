@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/ISpaceshipNFTUniverse1.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
+import "./interfaces/ISpaceFactoryV1.sol";
 
 /* ============ Errors ============ */
 error OnlyOneProtoShipAtATime();
@@ -20,6 +21,7 @@ error AlreadyHaveSpaceshipNFTUniverse1();
 /// This is because the contract utilizes the ERC1967 proxy + UUPSUpgradeable, enabling it to be
 /// upgraded in the future to support additional features and asset types.
 contract SpaceFactoryV1 is
+    ISpaceFactoryV1,
     Initializable,
     UUPSUpgradeable,
     AccessControlUpgradeable
@@ -100,6 +102,23 @@ contract SpaceFactoryV1 is
         uint256 tokenId
     ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
         _upgradeToOwnerShip(tokenId);
+    }
+
+    /* ============ View Functions ============ */
+
+    ///@dev Returns the TBA address of SpaceshipNFTUniverse1
+    ///@param tokenId ID of the token
+    function getSpaceshipNFTUniverse1TBA(
+        uint256 tokenId
+    ) external view returns (address) {
+        return
+            tokenBoundRegistry.account(
+                address(tokenBoundImplementation),
+                block.chainid,
+                address(spaceshipNFTUniverse1),
+                tokenId,
+                0
+            );
     }
 
     /* ============ Internal Functions ============ */
