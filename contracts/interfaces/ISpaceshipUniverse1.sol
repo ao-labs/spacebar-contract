@@ -2,20 +2,17 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./IERC5192.sol";
 
-/// @title SpaceshipNFTUniverse1
+/// @title SpaceshipUniverse1
 /// @notice Spaceship NFT for Spacebar Universe 1
 /// This contract introduces the concept of "Active Ownership", where the user must fulfill
 /// certain conditions to gain full ownership of a spaceship NFT.
 /// Until these conditions are met, the spaceship is locked and cannot be transferred.
+/// For above purpose, this contract implements ERC5192.
 /// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 /// The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
-interface ISpaceshipNFTUniverse1 is IERC721 {
-    /**
-     * @dev Emitted when a Proto-ship is unlocked, transitioning it into a fully owned Owner-ship
-     */
-    event Unlock(uint256 indexed tokenId);
-
+interface ISpaceshipUniverse1 is IERC721, IERC5192 {
     /// @notice Mints a new Spaceship. Spaceships are locked by default (aka. Proto-Ship)
     /// @dev Only space factory contract can call this function.
     /// @param to The address to mint the Proto-Ship to.

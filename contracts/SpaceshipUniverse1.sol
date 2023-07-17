@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./interfaces/ISpaceshipNFTUniverse1.sol";
+import "./interfaces/ISpaceshipUniverse1.sol";
 import "./interfaces/IERC4906.sol";
 
 /* ============ Errors ============ */
@@ -54,15 +54,16 @@ error ReachedMaxSupply();
  ########  ###        ###     ###  ########  ########## #########  ###     ### ###    ###
 */
 
-/// @title SpaceshipNFTUniverse1
+/// @title SpaceshipUniverse1
 /// @notice Spaceship NFT for Spacebar Universe 1
 /// This contract introduces the concept of "Active Ownership", where the user must fulfill
 /// certain conditions to gain full ownership of a spaceship NFT.
 /// Until these conditions are met, the spaceship is locked and cannot be transferred.
+/// For above purpose, this contract implements ERC5192.
 /// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 /// The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
-contract SpaceshipNFTUniverse1 is
-    ISpaceshipNFTUniverse1,
+contract SpaceshipUniverse1 is
+    ISpaceshipUniverse1,
     ERC721,
     IERC4906,
     AccessControl
@@ -92,7 +93,7 @@ contract SpaceshipNFTUniverse1 is
 
     /* ============ External Functions ============ */
 
-    /// @inheritdoc ISpaceshipNFTUniverse1
+    /// @inheritdoc ISpaceshipUniverse1
     function mint(
         address to
     ) external onlyRole(SPACE_FACTORY) returns (uint256) {
@@ -103,20 +104,22 @@ contract SpaceshipNFTUniverse1 is
         }
 
         _mint(to, nextTokenId);
+        emit Locked(nextTokenId);
+
         unchecked {
             ++nextTokenId;
         }
         return nextTokenId - 1; //return tokenId
     }
 
-    /// @inheritdoc ISpaceshipNFTUniverse1
+    /// @inheritdoc ISpaceshipUniverse1
     function unlock(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
         if (unlocked[tokenId]) revert OnlyLockedToken();
         unlocked[tokenId] = true;
-        emit Unlock(tokenId);
+        emit Unlocked(tokenId);
     }
 
-    /// @inheritdoc ISpaceshipNFTUniverse1
+    /// @inheritdoc ISpaceshipUniverse1
     function burn(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
         if (unlocked[tokenId]) revert OnlyLockedToken();
         _burn(tokenId);
@@ -125,7 +128,7 @@ contract SpaceshipNFTUniverse1 is
         }
     }
 
-    /// @inheritdoc ISpaceshipNFTUniverse1
+    /// @inheritdoc ISpaceshipUniverse1
     function updateMetadata(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
         emit MetadataUpdate(tokenId);
     }
@@ -157,6 +160,11 @@ contract SpaceshipNFTUniverse1 is
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
         return "https://api.spacebar.xyz/metadata/spaceship-u1/";
+    }
+
+    /* ============ View Functions ============ */
+    function locked(uint256 tokenId) external view override returns (bool) {
+        return !unlocked[tokenId];
     }
 
     /* ============ ERC-165 ============ */

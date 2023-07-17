@@ -1,21 +1,14 @@
 # Solidity API
 
-## ISpaceshipNFTUniverse1
+## ISpaceshipUniverse1
 
 Spaceship NFT for Spacebar Universe 1
 This contract introduces the concept of "Active Ownership", where the user must fulfill
 certain conditions to gain full ownership of a spaceship NFT.
 Until these conditions are met, the spaceship is locked and cannot be transferred.
+For above purpose, this contract implements ERC5192.
 Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
-
-### Unlock
-
-```solidity
-event Unlock(uint256 tokenId)
-```
-
-_Emitted when a Proto-ship is unlocked, transitioning it into a fully owned Owner-ship_
 
 ### mint
 
@@ -81,4 +74,12 @@ _This function will only emit an event (ERC4906)_
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | of the Spaceship to update metadata |
+
+### nextTokenId
+
+```solidity
+function nextTokenId() external returns (uint256)
+```
+
+_Returns the next token id to be minted_
 

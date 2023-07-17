@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./interfaces/IBadgeSBTUniverse1.sol";
+import "./interfaces/IBadgeUniverse1.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
 
 /* ============ Errors ============ */
@@ -13,7 +13,7 @@ error InvalidTokenId();
 
 /// @title Badge(Soulbound Token)contract for Spacebar Universe 1
 /// @dev Souldbound Tokens(SBT) are non-transferable tokens.
-contract BadgeSBTUniverse1 is ERC721, IBadgeSBTUniverse1 {
+contract BadgeUniverse1 is ERC721, IBadgeUniverse1 {
     /* ============ Variables ============ */
 
     /// @dev The total supply of tokens
@@ -40,7 +40,7 @@ contract BadgeSBTUniverse1 is ERC721, IBadgeSBTUniverse1 {
 
     // @TODO add parameter checks
     // @TODO might want to implement custom token URI (not by increasing integer)
-    /// @inheritdoc IBadgeSBTUniverse1
+    /// @inheritdoc IBadgeUniverse1
     function mintBadge(
         address to,
         uint128 primaryType,
@@ -69,7 +69,7 @@ contract BadgeSBTUniverse1 is ERC721, IBadgeSBTUniverse1 {
 
     /* ============ View Functions ============ */
 
-    /// @inheritdoc IBadgeSBTUniverse1
+    /// @inheritdoc IBadgeUniverse1
     function getTokenType(
         uint256 tokenId
     ) external view override returns (TokenType memory) {

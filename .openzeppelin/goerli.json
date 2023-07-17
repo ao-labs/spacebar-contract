@@ -181,10 +181,10 @@
             "src": "contracts/SpaceFactoryV1.sol:34"
           },
           {
-            "label": "spaceshipNFTUniverse1",
+            "label": "spaceshipUniverse1",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(ISpaceshipNFTUniverse1)3399",
+            "type": "t_contract(ISpaceshipUniverse1)3399",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:35"
           },
@@ -226,8 +226,8 @@
             "label": "contract IERC6551Registry",
             "numberOfBytes": "20"
           },
-          "t_contract(ISpaceshipNFTUniverse1)3399": {
-            "label": "contract ISpaceshipNFTUniverse1",
+          "t_contract(ISpaceshipUniverse1)3399": {
+            "label": "contract ISpaceshipUniverse1",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
@@ -355,10 +355,10 @@
             "src": "contracts/SpaceFactoryV1.sol:34"
           },
           {
-            "label": "spaceshipNFTUniverse1",
+            "label": "spaceshipUniverse1",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(ISpaceshipNFTUniverse1)3399",
+            "type": "t_contract(ISpaceshipUniverse1)3399",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:35"
           },
@@ -408,8 +408,8 @@
             "label": "contract IERC6551Registry",
             "numberOfBytes": "20"
           },
-          "t_contract(ISpaceshipNFTUniverse1)3399": {
-            "label": "contract ISpaceshipNFTUniverse1",
+          "t_contract(ISpaceshipUniverse1)3399": {
+            "label": "contract ISpaceshipUniverse1",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
@@ -537,10 +537,10 @@
             "src": "contracts/SpaceFactoryV1.sol:35"
           },
           {
-            "label": "spaceshipNFTUniverse1",
+            "label": "spaceshipUniverse1",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(ISpaceshipNFTUniverse1)3436",
+            "type": "t_contract(ISpaceshipUniverse1)3436",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:36"
           },
@@ -582,8 +582,8 @@
             "label": "contract IERC6551Registry",
             "numberOfBytes": "20"
           },
-          "t_contract(ISpaceshipNFTUniverse1)3436": {
-            "label": "contract ISpaceshipNFTUniverse1",
+          "t_contract(ISpaceshipUniverse1)3436": {
+            "label": "contract ISpaceshipUniverse1",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
@@ -711,10 +711,10 @@
             "src": "contracts/SpaceFactoryV1.sol:36"
           },
           {
-            "label": "spaceshipNFTUniverse1",
+            "label": "spaceshipUniverse1",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(ISpaceshipNFTUniverse1)22588",
+            "type": "t_contract(ISpaceshipUniverse1)22588",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:37"
           },
@@ -756,8 +756,8 @@
             "label": "contract IERC6551Registry",
             "numberOfBytes": "20"
           },
-          "t_contract(ISpaceshipNFTUniverse1)22588": {
-            "label": "contract ISpaceshipNFTUniverse1",
+          "t_contract(ISpaceshipUniverse1)22588": {
+            "label": "contract ISpaceshipUniverse1",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
@@ -885,18 +885,18 @@
             "src": "contracts/SpaceFactoryV1.sol:37"
           },
           {
-            "label": "spaceshipNFTUniverse1",
+            "label": "spaceshipUniverse1",
             "offset": 0,
             "slot": "253",
-            "type": "t_contract(ISpaceshipNFTUniverse1)8367",
+            "type": "t_contract(ISpaceshipUniverse1)8367",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:38"
           },
           {
-            "label": "badgeSBTUniverse1",
+            "label": "badgeUniverse1",
             "offset": 0,
             "slot": "254",
-            "type": "t_contract(IBadgeSBTUniverse1)8196",
+            "type": "t_contract(IBadgeUniverse1)8196",
             "contract": "SpaceFactoryV1",
             "src": "contracts/SpaceFactoryV1.sol:39"
           },
@@ -930,8 +930,8 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IBadgeSBTUniverse1)8196": {
-            "label": "contract IBadgeSBTUniverse1",
+          "t_contract(IBadgeUniverse1)8196": {
+            "label": "contract IBadgeUniverse1",
             "numberOfBytes": "20"
           },
           "t_contract(IERC6551Account)8263": {
@@ -942,8 +942,8 @@
             "label": "contract IERC6551Registry",
             "numberOfBytes": "20"
           },
-          "t_contract(ISpaceshipNFTUniverse1)8367": {
-            "label": "contract ISpaceshipNFTUniverse1",
+          "t_contract(ISpaceshipUniverse1)8367": {
+            "label": "contract ISpaceshipUniverse1",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {

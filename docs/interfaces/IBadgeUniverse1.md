@@ -1,6 +1,6 @@
 # Solidity API
 
-## IBadgeSBTUniverse1
+## IBadgeUniverse1
 
 _Souldbound Tokens(SBT) are non-transferable tokens._
 
@@ -32,7 +32,7 @@ Mints a new badge
 ### getTokenType
 
 ```solidity
-function getTokenType(uint256 tokenId) external returns (struct IBadgeSBTUniverse1.TokenType)
+function getTokenType(uint256 tokenId) external returns (struct IBadgeUniverse1.TokenType)
 ```
 
 _Returns the type of the badge (primary type, secondary type)_

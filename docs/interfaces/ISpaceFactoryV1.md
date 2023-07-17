@@ -2,13 +2,13 @@
 
 ## ISpaceFactoryV1
 
-### getSpaceshipNFTUniverse1TBA
+### getSpaceshipUniverse1TBA
 
 ```solidity
-function getSpaceshipNFTUniverse1TBA(uint256 tokenId) external view returns (address)
+function getSpaceshipUniverse1TBA(uint256 tokenId) external view returns (address)
 ```
 
-_Returns the TBA address of SpaceshipNFTUniverse1_
+_Returns the TBA address of SpaceshipUniverse1_
 
 #### Parameters
 

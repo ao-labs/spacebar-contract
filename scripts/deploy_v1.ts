@@ -1,8 +1,8 @@
 import { ethers, upgrades } from "hardhat"
 import {
 	SpaceFactoryV1,
-	SpaceshipNFTUniverse1,
-	BadgeSBTUniverse1,
+	SpaceshipUniverse1,
+	BadgeUniverse1,
 } from "../typechain-types"
 
 async function main() {
@@ -37,69 +37,67 @@ async function main() {
 		address: implementationAddress,
 	})
 
-	/// @dev Deploying SpaceshipNFTUniverse1
-	console.log("Deploying SpaceshipNFTUniverse1...")
-	const SpaceshipNFTUniverse1 = await ethers.getContractFactory(
-		"SpaceshipNFTUniverse1"
+	/// @dev Deploying SpaceshipUniverse1
+	console.log("Deploying SpaceshipUniverse1...")
+	const SpaceshipUniverse1 = await ethers.getContractFactory(
+		"SpaceshipUniverse1"
 	)
 
-	const spaceshipNFTUniverse1 = (await SpaceshipNFTUniverse1.deploy(
+	const spaceshipUniverse1 = (await SpaceshipUniverse1.deploy(
 		spaceFactoryV1.address,
 		process.env.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
-	)) as SpaceshipNFTUniverse1
+	)) as SpaceshipUniverse1
 
-	await spaceshipNFTUniverse1.deployed()
+	await spaceshipUniverse1.deployed()
 
 	console.log(
-		"SpaceshipNFTUniverse1 is deployed to:",
-		spaceshipNFTUniverse1.address
+		"SpaceshipUniverse1 is deployed to:",
+		spaceshipUniverse1.address
 	)
 
-	/// @dev Verify SpaceshipNFTUniverse1
-	console.log("Verifying SpaceshipNFTUniverse1 on etherscan...")
+	/// @dev Verify SpaceshipUniverse1
+	console.log("Verifying SpaceshipUniverse1 on etherscan...")
 
-	await spaceshipNFTUniverse1.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
+	await spaceshipUniverse1.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
 	// @ts-ignore
 	await run(`verify:verify`, {
-		address: spaceshipNFTUniverse1.address,
+		address: spaceshipUniverse1.address,
 		constructorArguments: [
 			spaceFactoryV1.address,
 			process.env.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY,
 		],
 	})
 
-	/// @dev Deploying BadgeSBTUniverse1
-	console.log("Deploying BadgeSBTUniverse1...")
-	const BadgeSBTUniverse1 = await ethers.getContractFactory(
-		"BadgeSBTUniverse1"
-	)
+	/// @dev Deploying BadgeUniverse1
+	console.log("Deploying BadgeUniverse1...")
+	const BadgeUniverse1 = await ethers.getContractFactory("BadgeUniverse1")
 
-	const badgeSBTUniverse1 = (await BadgeSBTUniverse1.deploy(
+	const badgeUniverse1 = (await BadgeUniverse1.deploy(
 		spaceFactoryV1.address
-	)) as BadgeSBTUniverse1
+	)) as BadgeUniverse1
 
-	await badgeSBTUniverse1.deployed()
-	console.log("BadgeSBTUniverse1 is deployed to:", badgeSBTUniverse1.address)
+	await badgeUniverse1.deployed()
+	console.log("BadgeUniverse1 is deployed to:", badgeUniverse1.address)
 
-	/// @dev Verify BadgeSBTUniverse1
-	console.log("Verifying BadgeSBTUniverse1 on etherscan...")
+	/// @dev Verify BadgeUniverse1
+	console.log("Verifying BadgeUniverse1 on etherscan...")
 
-	await badgeSBTUniverse1.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
+	await badgeUniverse1.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
 	// @ts-ignore
 	await run(`verify:verify`, {
-		address: badgeSBTUniverse1.address,
+		address: badgeUniverse1.address,
 		constructorArguments: [spaceFactoryV1.address],
 	})
 
-	/// @dev set SpaceshipNFTUniverse1 address to SpaceFactoryV1
-	console.log("Setting SpaceshipNFTUniverse1 address to SpaceFactoryV1...")
+	/// @dev set SpaceshipUniverse1 address to SpaceFactoryV1
+	console.log("Setting SpaceshipUniverse1 address to SpaceFactoryV1...")
 
-	await spaceFactoryV1.setSpaceshipNFTUniverse1(spaceshipNFTUniverse1.address)
+	await spaceFactoryV1.setSpaceshipUniverse1(spaceshipUniverse1.address)
 
-	/// @dev set BadgeSBTUniverse1 address to SpaceFactoryV1
-	console.log("Setting BadgeSBTUniverse1 address to SpaceFactoryV1...")
+	/// @dev set BadgeUniverse1 address to SpaceFactoryV1
+	console.log("Setting BadgeUniverse1 address to SpaceFactoryV1...")
 
-	await spaceFactoryV1.setBadgeSBTUniverse1(badgeSBTUniverse1.address)
+	await spaceFactoryV1.setBadgeUniverse1(badgeUniverse1.address)
 
 	console.log("Done!")
 }

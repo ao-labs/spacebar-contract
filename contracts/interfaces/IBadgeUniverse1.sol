@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 /// @title Badge(Soulbound Token) contract interface for Spacebar Universe 1
 /// @dev Souldbound Tokens(SBT) are non-transferable tokens.
-interface IBadgeSBTUniverse1 {
+interface IBadgeUniverse1 {
     struct TokenType {
         uint128 primaryType;
         uint128 secondaryType;

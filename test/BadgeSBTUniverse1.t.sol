@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../contracts/ERC6551/ERC6551Registry.sol";
 import "../contracts/SpaceFactoryV1.sol";
-import "../contracts/BadgeSBTUniverse1.sol";
-import "../contracts/SpaceshipNFTUniverse1.sol";
+import "../contracts/BadgeUniverse1.sol";
+import "../contracts/SpaceshipUniverse1.sol";
 import "./mocks/MockERC6551Account.sol";
 import "./mocks/MockERC721.sol";
 
-contract BadgeSBTUniverse1Test is Test {
+contract BadgeUniverse1Test is Test {
     address factory;
-    BadgeSBTUniverse1 badge;
+    BadgeUniverse1 badge;
     address user1;
     address user2;
 
@@ -32,7 +32,7 @@ contract BadgeSBTUniverse1Test is Test {
         factory = vm.addr(1);
         user1 = vm.addr(2);
         user2 = vm.addr(3);
-        badge = new BadgeSBTUniverse1(factory);
+        badge = new BadgeUniverse1(factory);
     }
 
     function testMint() public {
@@ -52,9 +52,7 @@ contract BadgeSBTUniverse1Test is Test {
 
         badge.mintBadge(user1, primaryType, secondaryType);
 
-        BadgeSBTUniverse1.TokenType memory tokenType = badge.getTokenType(
-            tokenId
-        );
+        BadgeUniverse1.TokenType memory tokenType = badge.getTokenType(tokenId);
 
         assertEq(badge.ownerOf(tokenId), user1);
         assertEq(badge.totalSupply(), 1);

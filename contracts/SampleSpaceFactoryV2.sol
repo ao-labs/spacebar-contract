@@ -8,7 +8,7 @@ import "./SpaceFactoryV1.sol";
 contract SpaceFactoryV2 is SpaceFactoryV1 {
     uint256 public test;
 
-    function deployTBAAndMintProtoShip(
+    function mintProtoShipUniverse1(
         address tokenContract,
         uint256 tokenId
     ) external override returns (address) {

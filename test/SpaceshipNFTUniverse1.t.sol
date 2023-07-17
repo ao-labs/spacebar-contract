@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../contracts/ERC6551/ERC6551Registry.sol";
 import "../contracts/SpaceFactoryV1.sol";
-import "../contracts/SpaceshipNFTUniverse1.sol";
+import "../contracts/SpaceshipUniverse1.sol";
 import "./mocks/MockERC6551Account.sol";
 
-contract SpaceshipNFTUniverse1Test is Test {
-    SpaceshipNFTUniverse1 public spaceship;
+contract SpaceshipUniverse1Test is Test {
+    SpaceshipUniverse1 public spaceship;
     address factory;
     address[] users;
     uint256 totalUser = 5;
@@ -19,7 +19,7 @@ contract SpaceshipNFTUniverse1Test is Test {
         for (uint256 i = 0; i < totalUser; i++) {
             users.push(vm.addr(i + 2));
         }
-        spaceship = new SpaceshipNFTUniverse1(factory, maxSupply);
+        spaceship = new SpaceshipUniverse1(factory, maxSupply);
     }
 
     function testMint() public {

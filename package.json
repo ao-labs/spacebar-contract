@@ -6,7 +6,7 @@
     "clean": "rm -rf ./artifacts ./cache ./coverage ./typechain-types ./coverage.json",
     "compile": "npx hardhat compile",
     "test": "forge test -vvv",
-    "docs": "npx hardhat docgen",
+    "docs": "rm -rf ./docs && npx hardhat docgen",
     "test:report-gas": "forge test -vvv --gas-report",
     "deploy:goerli": "npx hardhat run scripts/deploy_v1.ts --network goerli",
     "upgrade:goerli": "npx hardhat run scripts/upgrade_v2.ts --network goerli",

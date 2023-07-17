@@ -24,7 +24,7 @@ error OnlySpaceFactory()
 error InvalidTokenId()
 ```
 
-## BadgeSBTUniverse1
+## BadgeUniverse1
 
 _Souldbound Tokens(SBT) are non-transferable tokens._
 
@@ -73,23 +73,23 @@ Mints a new badge
 ### approve
 
 ```solidity
-function approve(address to, uint256 tokenId) public
+function approve(address, uint256) public virtual
 ```
 
-_See {IERC721-approve}._
+_This function is not implemented._
 
 ### setApprovalForAll
 
 ```solidity
-function setApprovalForAll(address operator, bool approved) public virtual
+function setApprovalForAll(address, bool) public virtual
 ```
 
-_See {IERC721-setApprovalForAll}._
+_This function is not implemented._
 
 ### getTokenType
 
 ```solidity
-function getTokenType(uint256 tokenId) external view returns (struct IBadgeSBTUniverse1.TokenType)
+function getTokenType(uint256 tokenId) external view returns (struct IBadgeUniverse1.TokenType)
 ```
 
 _Returns the type of the badge (primary type, secondary type)_
@@ -105,6 +105,8 @@ _Returns the type of the badge (primary type, secondary type)_
 ```solidity
 function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal virtual
 ```
+
+_Users cannot transfer SBTs._
 
 ### _baseURI
 

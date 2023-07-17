@@ -18,12 +18,13 @@ error OnlyLockedToken()
 error ReachedMaxSupply()
 ```
 
-## SpaceshipNFTUniverse1
+## SpaceshipUniverse1
 
 Spaceship NFT for Spacebar Universe 1
 This contract introduces the concept of "Active Ownership", where the user must fulfill
 certain conditions to gain full ownership of a spaceship NFT.
 Until these conditions are met, the spaceship is locked and cannot be transferred.
+For above purpose, this contract implements ERC5192.
 Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
 
@@ -46,6 +47,8 @@ uint16 currentSupply
 ```solidity
 uint256 nextTokenId
 ```
+
+_Returns the next token id to be minted_
 
 ### SPACE_FACTORY
 
@@ -157,6 +160,23 @@ function _baseURI() internal pure returns (string)
 _Base URI for computing {tokenURI}. If set, the resulting URI for each
 token will be the concatenation of the `baseURI` and the `tokenId`. Empty
 by default, can be overridden in child contracts._
+
+### locked
+
+```solidity
+function locked(uint256 tokenId) external view returns (bool)
+```
+
+Returns the locking status of an Soulbound Token
+
+_SBTs assigned to zero address are considered invalid, and queries
+about them do throw._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenId | uint256 | The identifier for an SBT. |
 
 ### supportsInterface
 
