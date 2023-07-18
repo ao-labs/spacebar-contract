@@ -14,6 +14,7 @@ contract BadgeUniverse1Test is Test {
     BadgeUniverse1 badge;
     address user1;
     address user2;
+    string tokenURI = "randomString";
 
     event Transfer(
         address indexed from,
@@ -25,7 +26,8 @@ contract BadgeUniverse1Test is Test {
         address indexed to,
         uint128 indexed primaryType,
         uint128 indexed secondaryType,
-        uint256 tokenId
+        uint256 tokenId,
+        string tokenURI
     );
 
     function setUp() public {
@@ -41,16 +43,16 @@ contract BadgeUniverse1Test is Test {
         uint128 secondaryType = 2;
 
         vm.expectRevert(OnlySpaceFactory.selector);
-        badge.mintBadge(user1, primaryType, secondaryType);
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
 
         vm.expectRevert(InvalidTokenId.selector);
         badge.getTokenType(tokenId);
 
         vm.prank(factory);
         vm.expectEmit(true, true, true, true);
-        emit MintBadge(user1, primaryType, secondaryType, tokenId);
+        emit MintBadge(user1, primaryType, secondaryType, tokenId, tokenURI);
 
-        badge.mintBadge(user1, primaryType, secondaryType);
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
 
         BadgeUniverse1.TokenType memory tokenType = badge.getTokenType(tokenId);
 
@@ -67,7 +69,7 @@ contract BadgeUniverse1Test is Test {
         uint128 secondaryType = 2;
 
         vm.prank(factory);
-        badge.mintBadge(user1, primaryType, secondaryType);
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
 
         vm.startPrank(user1);
         vm.expectRevert(CanNotApprove.selector);

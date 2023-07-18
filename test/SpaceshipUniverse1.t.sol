@@ -108,4 +108,17 @@ contract SpaceshipUniverse1Test is Test {
             true
         );
     }
+
+    function testDecentralizedTokenURI() public {
+        vm.startPrank(factory);
+        spaceship.mint(users[0]);
+        assertEq(
+            spaceship.tokenURI(0),
+            "https://api.spacebar.xyz/metadata/spaceship_universe1/0"
+        );
+
+        spaceship.setDecentralizedTokenURI(0, "random");
+
+        assertEq(spaceship.tokenURI(0), "https://www.arweave.net/random");
+    }
 }

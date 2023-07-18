@@ -64,6 +64,12 @@ _constant for the space factory role_
 mapping(uint256 => bool) unlocked
 ```
 
+### decentralizedTokenURIBase
+
+```solidity
+string decentralizedTokenURIBase
+```
+
 ### constructor
 
 ```solidity
@@ -143,6 +149,18 @@ function approve(address to, uint256 tokenId) public
 
 _override approve to prevent locked tokens from being approved_
 
+### setDecentralizedTokenURIBase
+
+```solidity
+function setDecentralizedTokenURIBase(string _decentralizedTokenURIBase_) external
+```
+
+### setDecentralizedTokenURI
+
+```solidity
+function setDecentralizedTokenURI(uint256 tokenId, string decentralizedTokenURI) external
+```
+
 ### _beforeTokenTransfer
 
 ```solidity
@@ -177,6 +195,14 @@ about them do throw._
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | The identifier for an SBT. |
+
+### tokenURI
+
+```solidity
+function tokenURI(uint256 tokenId) public view virtual returns (string)
+```
+
+_See {IERC721Metadata-tokenURI}._
 
 ### supportsInterface
 

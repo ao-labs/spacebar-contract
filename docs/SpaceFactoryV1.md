@@ -24,6 +24,12 @@ error InvalidProtoShip()
 error AddressAlreadyRegistered()
 ```
 
+## NotWhiteListed
+
+```solidity
+error NotWhiteListed()
+```
+
 ## SpaceFactoryV1
 
 This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
@@ -38,6 +44,12 @@ bytes32 SERVICE_ADMIN_ROLE
 ```
 
 _The constant for the service admin role_
+
+### MINTER_ROLE
+
+```solidity
+bytes32 MINTER_ROLE
+```
 
 ### tokenBoundImplementation
 
@@ -63,10 +75,16 @@ contract ISpaceshipUniverse1 spaceshipUniverse1
 contract IBadgeUniverse1 badgeUniverse1
 ```
 
-### universe1WhitelistingPeriod
+### isUniverse1Whitelisted
 
 ```solidity
-bool universe1WhitelistingPeriod
+bool isUniverse1Whitelisted
+```
+
+### universe1WhitelistBadgeType
+
+```solidity
+struct IBadgeUniverse1.TokenType universe1WhitelistBadgeType
 ```
 
 ### hasProtoShip
@@ -93,16 +111,22 @@ event SetSpaceshipUniverse1(address contractAddress)
 event SetBadgeUniverse1(address contractAddress)
 ```
 
-### SetUniverse1WhiteListingPeriod
+### SetIsUniverse1Whitelisted
 
 ```solidity
-event SetUniverse1WhiteListingPeriod(bool isWhiteListingPeriod)
+event SetIsUniverse1Whitelisted(bool isUniverse1Whitelisted)
+```
+
+### SetUniverse1WhitelistBadgeType
+
+```solidity
+event SetUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType badgeType)
 ```
 
 ### initialize
 
 ```solidity
-function initialize(address defaultAdmin, address serviceAdmin, contract IERC6551Registry _tokenBoundRegistry, contract IERC6551Account _tokenBoundImplementation) public
+function initialize(address defaultAdmin, address serviceAdmin, address minterAdmin, contract IERC6551Registry _tokenBoundRegistry, contract IERC6551Account _tokenBoundImplementation, bool _isUniverse1Whitelisted, struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) public
 ```
 
 ### setSpaceshipUniverse1
@@ -121,6 +145,18 @@ function setBadgeUniverse1(address contractAddress) external
 
 _badgeUniverse1 address should only be set once and never change_
 
+### setIsUniverse1Whitelisted
+
+```solidity
+function setIsUniverse1Whitelisted(bool _isUniverse1Whitelisted) external
+```
+
+### setUniverse1WhitelistBadgeType
+
+```solidity
+function setUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) external
+```
+
 ### mintProtoShipUniverse1
 
 ```solidity
@@ -138,6 +174,12 @@ already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime)._
 | ---- | ---- | ----------- |
 | tokenContract | address | TBA's contract address |
 | tokenId | uint256 | TBA's token ID |
+
+### mintWhitelistBadgeUniverse1
+
+```solidity
+function mintWhitelistBadgeUniverse1(address tokenContract, uint256 tokenId, string tokenURI) external virtual
+```
 
 ### burnProtoShipUniverse1
 

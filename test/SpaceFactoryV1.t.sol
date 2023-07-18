@@ -22,15 +22,17 @@ contract SpaceFactoryV1Test is Test {
 
     address defaultAdmin;
     address serviceAdmin;
+    address minterAdmin;
     address[] users;
     uint16 maxSupply = 10;
 
     function setUp() public {
         defaultAdmin = vm.addr(1);
         serviceAdmin = vm.addr(2);
+        minterAdmin = vm.addr(3);
         externalERC721 = new MockERC721();
         for (uint256 i = 0; i < maxSupply + 1; i++) {
-            users.push(vm.addr(i + 3));
+            users.push(vm.addr(i + 4));
             externalERC721.mint(users[i], i);
         }
 
@@ -44,8 +46,11 @@ contract SpaceFactoryV1Test is Test {
         factory.initialize(
             defaultAdmin,
             serviceAdmin,
+            minterAdmin,
             registry,
-            implementation
+            implementation,
+            false,
+            IBadgeUniverse1.TokenType(0, 0)
         );
         spaceship = new SpaceshipUniverse1(address(factory), maxSupply);
         badge = new BadgeUniverse1(address(factory));
@@ -55,7 +60,7 @@ contract SpaceFactoryV1Test is Test {
         vm.stopPrank();
     }
 
-    function testmintProtoShipUniverse1() public {
+    function testMintProtoShipUniverse1() public {
         address user1ProfileTBA = registry.account(
             address(implementation),
             block.chainid,
@@ -224,5 +229,52 @@ contract SpaceFactoryV1Test is Test {
         vm.prank(defaultAdmin);
         vm.expectRevert(); // should revert because it can be set only once
         factory.setSpaceshipUniverse1(vm.addr(20)); //random address
+    }
+
+    function testWhitelistBadge() public {
+        string memory uri = "randomURI";
+        vm.prank(defaultAdmin);
+        factory.setIsUniverse1Whitelisted(true);
+
+        // should revert if the NFT's tba doesn't have the badge
+        vm.expectRevert(NotWhiteListed.selector);
+        vm.prank(users[0]);
+        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+
+        vm.prank(minterAdmin);
+        factory.mintWhitelistBadgeUniverse1(address(externalERC721), 0, uri);
+
+        address user1ProfileTBA = registry.account(
+            address(implementation),
+            block.chainid,
+            address(externalERC721),
+            0, // token id
+            0 // salt
+        );
+        assertEq(badge.ownerOf(0), user1ProfileTBA);
+        vm.prank(users[0]);
+        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+    }
+
+    function testWhitelistBadgeRevert() public {
+        string memory uri = "randomURI";
+        vm.prank(defaultAdmin);
+        factory.setIsUniverse1Whitelisted(true);
+
+        vm.prank(address(factory));
+        // mint wrong badge (primary type 0, secondary type 1)
+        badge.mintBadge(address(externalERC721), 0, 1, uri);
+
+        vm.expectRevert(NotWhiteListed.selector);
+        vm.prank(users[0]);
+        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+
+        vm.prank(address(factory));
+        // mint the right badge but to EOA, not TBA
+        badge.mintBadge(users[0], 0, 0, uri);
+
+        vm.expectRevert(NotWhiteListed.selector);
+        vm.prank(users[0]);
+        factory.mintProtoShipUniverse1(address(externalERC721), 0);
     }
 }
