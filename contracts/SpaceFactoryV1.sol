@@ -15,6 +15,7 @@ error OnlyOneProtoShipAtATime();
 error OnlyNFTOwner();
 error InvalidProtoShip();
 error AddressAlreadyRegistered();
+error NotWhiteListed();
 
 /// @title Space Factory V1
 /// @notice This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
@@ -32,12 +33,14 @@ contract SpaceFactoryV1 is
     /// @dev The constant for the service admin role
     bytes32 public constant SERVICE_ADMIN_ROLE =
         keccak256("SERVICE_ADMIN_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
     ISpaceshipUniverse1 public spaceshipUniverse1;
     IBadgeUniverse1 public badgeUniverse1;
-    bool public universe1WhitelistingPeriod;
+    bool public isUniverse1Whitelisted;
+    IBadgeUniverse1.TokenType universe1WhitelistBadgeType;
 
     mapping(address => bool) public hasProtoShip;
 
@@ -50,7 +53,8 @@ contract SpaceFactoryV1 is
     );
     event SetSpaceshipUniverse1(address contractAddress);
     event SetBadgeUniverse1(address contractAddress);
-    event SetUniverse1WhiteListingPeriod(bool isWhiteListingPeriod);
+    event SetIsUniverse1Whitelisted(bool isUniverse1Whitelisted);
+    event SetUniverse1WhitelistBadgeType(IBadgeUniverse1.TokenType badgeType);
 
     /* ============ Constructor ============ */
 
@@ -60,14 +64,21 @@ contract SpaceFactoryV1 is
     function initialize(
         address defaultAdmin,
         address serviceAdmin,
+        address minterAdmin,
         IERC6551Registry _tokenBoundRegistry,
-        IERC6551Account _tokenBoundImplementation
+        IERC6551Account _tokenBoundImplementation,
+        bool _isUniverse1Whitelisted,
+        IBadgeUniverse1.TokenType memory _universe1WhitelistBadgeType
     ) public initializer {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(SERVICE_ADMIN_ROLE, serviceAdmin);
+        _grantRole(MINTER_ROLE, minterAdmin);
         tokenBoundRegistry = (_tokenBoundRegistry);
         tokenBoundImplementation = (_tokenBoundImplementation);
-        universe1WhitelistingPeriod = true;
+        isUniverse1Whitelisted = _isUniverse1Whitelisted;
+        universe1WhitelistBadgeType = _universe1WhitelistBadgeType;
+        emit SetIsUniverse1Whitelisted(_isUniverse1Whitelisted);
+        emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
     }
 
     /// @dev spaceshipUniverse1 address should only be set once and never change
@@ -86,6 +97,20 @@ contract SpaceFactoryV1 is
         emit SetBadgeUniverse1(contractAddress);
     }
 
+    function setIsUniverse1Whitelisted(
+        bool _isUniverse1Whitelisted
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isUniverse1Whitelisted = _isUniverse1Whitelisted;
+        emit SetIsUniverse1Whitelisted(_isUniverse1Whitelisted);
+    }
+
+    function setUniverse1WhitelistBadgeType(
+        IBadgeUniverse1.TokenType memory _universe1WhitelistBadgeType
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        universe1WhitelistBadgeType = _universe1WhitelistBadgeType;
+        emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
+    }
+
     /* ============ External Functions ============ */
 
     /// @notice Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
@@ -100,8 +125,10 @@ contract SpaceFactoryV1 is
         if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
             revert OnlyNFTOwner();
         }
+
         uint256 spaceshipTokenId = spaceshipUniverse1.nextTokenId();
-        address spaceshipTBA = _deployOrGetTokenBoundAccount(
+
+        _deployOrGetTokenBoundAccount(
             address(spaceshipUniverse1),
             spaceshipTokenId
         );
@@ -114,15 +141,43 @@ contract SpaceFactoryV1 is
             0
         );
 
-        _mintProtoShipUniverse1(profileTBA);
-
-        // @TODO update after details are fixed
-        if (spaceshipTokenId < 300) {
-            badgeUniverse1.mintBadge(spaceshipTBA, 0, 0);
+        //@dev during whitelisting period TBA must own the specific type of badge
+        if (isUniverse1Whitelisted) {
+            if (
+                !badgeUniverse1.isOwnerOfTokenType(
+                    profileTBA,
+                    universe1WhitelistBadgeType.primaryType,
+                    universe1WhitelistBadgeType.secondaryType
+                )
+            ) {
+                revert NotWhiteListed();
+            }
         }
 
+        _mintProtoShipUniverse1(profileTBA);
         emit MintProtoShipUniverse1(tokenContract, tokenId, spaceshipTokenId);
         return profileTBA;
+    }
+
+    function mintWhitelistBadgeUniverse1(
+        address tokenContract,
+        uint256 tokenId,
+        string memory tokenURI
+    ) external virtual onlyRole(MINTER_ROLE) {
+        address profileTBA = tokenBoundRegistry.account(
+            address(tokenBoundImplementation),
+            block.chainid,
+            tokenContract,
+            tokenId,
+            0
+        );
+
+        badgeUniverse1.mintBadge(
+            profileTBA,
+            universe1WhitelistBadgeType.primaryType,
+            universe1WhitelistBadgeType.secondaryType,
+            tokenURI
+        );
     }
 
     /// @notice Burns a Proto-Ship from the address when it fails to meet requirements.

@@ -45,7 +45,7 @@ address spaceFactory
 ### MintBadge
 
 ```solidity
-event MintBadge(address to, uint128 primaryType, uint128 secondaryType, uint256 tokenId)
+event MintBadge(address to, uint128 primaryType, uint128 secondaryType, uint256 tokenId, string tokenURI)
 ```
 
 ### constructor
@@ -57,7 +57,7 @@ constructor(address _spaceFactory) public
 ### mintBadge
 
 ```solidity
-function mintBadge(address to, uint128 primaryType, uint128 secondaryType) external
+function mintBadge(address to, uint128 primaryType, uint128 secondaryType, string tokenURI) external
 ```
 
 Mints a new badge
@@ -69,6 +69,7 @@ Mints a new badge
 | to | address | The address to mint the badge to |
 | primaryType | uint128 | The primary type of the badge |
 | secondaryType | uint128 | The secondary type of the badge |
+| tokenURI | string |  |
 
 ### approve
 
@@ -99,6 +100,34 @@ _Returns the type of the badge (primary type, secondary type)_
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | tokenId | uint256 | The ID of the token |
+
+### isOwnerOfTokenType
+
+```solidity
+function isOwnerOfTokenType(address user, uint128 primaryType, uint128 secondaryType) external view returns (bool)
+```
+
+_Returns whether the user owns a specific token type_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| user | address | user address |
+| primaryType | uint128 | Primary type of token |
+| secondaryType | uint128 | Secondary type of token |
+
+### _setTokenURI
+
+```solidity
+function _setTokenURI(uint256 tokenId, string _tokenURI) internal virtual
+```
+
+_Sets `_tokenURI` as the tokenURI of `tokenId`.
+
+Requirements:
+
+- `tokenId` must exist._
 
 ### _beforeTokenTransfer
 

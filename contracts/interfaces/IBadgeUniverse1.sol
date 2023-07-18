@@ -16,10 +16,21 @@ interface IBadgeUniverse1 {
     function mintBadge(
         address to,
         uint128 primaryType,
-        uint128 secondaryType
+        uint128 secondaryType,
+        string memory tokenURI
     ) external;
 
     ///@dev Returns the type of the badge (primary type, secondary type)
     ///@param tokenId The ID of the token
     function getTokenType(uint256 tokenId) external returns (TokenType memory);
+
+    ///@dev Returns whether the user owns a specific token type
+    ///@param user user address
+    ///@param primaryType Primary type of token
+    ///@param secondaryType Secondary type of token
+    function isOwnerOfTokenType(
+        address user,
+        uint128 primaryType,
+        uint128 secondaryType
+    ) external returns (bool);
 }

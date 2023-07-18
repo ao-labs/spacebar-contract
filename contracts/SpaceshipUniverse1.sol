@@ -81,12 +81,16 @@ contract SpaceshipUniverse1 is
     // @dev mapping from token ID to whether it is fully owned Owner-Ship
     mapping(uint256 => bool) public unlocked;
 
+    // Optional token URIs for decentralized storage
+    mapping(uint256 => string) private _decentralizedTokenURIs;
+    string decentralizedTokenURIBase = "https://www.arweave.net/";
+
     /* ============ Constructor ============ */
 
     constructor(
         address spaceFactory,
         uint16 maxSpaceshipUniverse1CirculatingSupply
-    ) ERC721("Spaceship Universe 1", "SU1") {
+    ) ERC721("Spaceship Universe1", "SPACESHIP-U1") {
         _grantRole(SPACE_FACTORY, spaceFactory);
         MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY = maxSpaceshipUniverse1CirculatingSupply;
     }
@@ -142,6 +146,20 @@ contract SpaceshipUniverse1 is
         super.approve(to, tokenId);
     }
 
+    function setDecentralizedTokenURIBase(
+        string memory _decentralizedTokenURIBase_
+    ) external onlyRole(SPACE_FACTORY) {
+        decentralizedTokenURIBase = _decentralizedTokenURIBase_;
+    }
+
+    function setDecentralizedTokenURI(
+        uint256 tokenId,
+        string memory decentralizedTokenURI
+    ) external onlyRole(SPACE_FACTORY) {
+        _decentralizedTokenURIs[tokenId] = decentralizedTokenURI;
+        emit MetadataUpdate(tokenId);
+    }
+
     /* ============ Internal Functions ============ */
 
     /// @dev override approve to prevent locked tokens from being transferred to other addresses
@@ -159,12 +177,31 @@ contract SpaceshipUniverse1 is
 
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
-        return "https://api.spacebar.xyz/metadata/spaceship-u1/";
+        return "https://api.spacebar.xyz/metadata/spaceship_universe1/";
     }
 
     /* ============ View Functions ============ */
     function locked(uint256 tokenId) external view override returns (bool) {
         return !unlocked[tokenId];
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        _requireMinted(tokenId);
+
+        string memory _decentralizedTokenURI = _decentralizedTokenURIs[tokenId];
+
+        if (bytes(_decentralizedTokenURI).length > 0) {
+            return
+                string(
+                    abi.encodePacked(
+                        decentralizedTokenURIBase,
+                        _decentralizedTokenURI
+                    )
+                );
+        }
+        return super.tokenURI(tokenId);
     }
 
     /* ============ ERC-165 ============ */
