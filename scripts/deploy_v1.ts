@@ -15,8 +15,11 @@ async function main() {
 		[
 			process.env.DEFAULT_ADMIN_ADDRESS,
 			process.env.SERVICE_ADMIN_ADDRESS,
+			process.env.MINTER_ADMIN_ADDRESS,
 			process.env.TBA_REGISTRY_ADDRESS,
 			process.env.TBA_IMPLEMENTATION_ADDRESS,
+			false, // @TODO change to true
+			[0, 0],
 		],
 		{
 			initializer: "initialize",
