@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 import "../contracts/ERC6551/ERC6551Registry.sol";
 import "../contracts/SpaceFactoryV1.sol";
 import "../contracts/BadgeUniverse1.sol";
-import "../contracts/SpaceshipUniverse1.sol";
 import "./mocks/MockERC6551Account.sol";
 import "./mocks/MockERC721.sol";
 
@@ -48,10 +47,11 @@ contract BadgeUniverse1Test is Test {
         vm.expectRevert(InvalidTokenId.selector);
         badge.getTokenType(tokenId);
 
+        assertEq(badge.balanceOf(user1), 0);
+
         vm.prank(factory);
         vm.expectEmit(true, true, true, true);
         emit MintBadge(user1, primaryType, secondaryType, tokenId, tokenURI);
-
         badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
 
         BadgeUniverse1.TokenType memory tokenType = badge.getTokenType(tokenId);
@@ -61,6 +61,35 @@ contract BadgeUniverse1Test is Test {
         assertEq(badge.balanceOf(user1), 1);
         assertEq(tokenType.primaryType, primaryType);
         assertEq(tokenType.secondaryType, secondaryType);
+    }
+
+    function testBurn() public {
+        uint128 primaryType = 1;
+        uint128 secondaryType = 2;
+        vm.prank(factory);
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
+        assertEq(badge.balanceOf(user1), 1);
+        vm.prank(user1);
+        badge.burnBadge(0);
+        assertEq(badge.balanceOf(user1), 0);
+
+        vm.expectRevert("ERC721: invalid token ID");
+        badge.ownerOf(0);
+
+        vm.prank(factory);
+        badge.mintBadge(user2, primaryType, secondaryType, tokenURI);
+
+        // only factory or token owner can burn
+        vm.prank(user1);
+        vm.expectRevert(OnlySpaceFactoryOrOwner.selector);
+        badge.burnBadge(1);
+
+        vm.prank(factory);
+        badge.burnBadge(1);
+        assertEq(badge.balanceOf(user2), 0);
+
+        vm.expectRevert("ERC721: invalid token ID");
+        badge.ownerOf(1);
     }
 
     function testTransferRevert() public {

@@ -9,6 +9,7 @@ import "./interfaces/ISpaceFactoryV1.sol";
 error CanNotTransfer();
 error CanNotApprove();
 error OnlySpaceFactory();
+error OnlySpaceFactoryOrOwner();
 error InvalidTokenId();
 
 /// @title Badge(Soulbound Token)contract for Spacebar Universe 1
@@ -48,7 +49,7 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1 {
         uint128 primaryType,
         uint128 secondaryType,
         string memory tokenURI
-    ) external {
+    ) public {
         if (msg.sender != spaceFactory) {
             revert OnlySpaceFactory();
         }
@@ -62,6 +63,13 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1 {
         unchecked {
             ++totalSupply;
         }
+    }
+
+    function burnBadge(uint256 tokenId) public {
+        if (msg.sender != spaceFactory && msg.sender != ownerOf(tokenId)) {
+            revert OnlySpaceFactoryOrOwner();
+        }
+        _burn(tokenId);
     }
 
     /// @dev This function is not implemented.
