@@ -3,6 +3,8 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
 import "./interfaces/IERC4906.sol";
 
@@ -63,6 +65,8 @@ error ReachedMaxSupply();
 /// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 /// The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
 contract SpaceshipUniverse1 is
+    DefaultOperatorFilterer,
+    ERC2981,
     ISpaceshipUniverse1,
     ERC721,
     IERC4906,
@@ -89,9 +93,11 @@ contract SpaceshipUniverse1 is
 
     constructor(
         address spaceFactory,
-        uint16 maxSpaceshipUniverse1CirculatingSupply
+        uint16 maxSpaceshipUniverse1CirculatingSupply,
+        address royaltyReceiver
     ) ERC721("Spaceship Universe1", "SPACESHIP-U1") {
         _grantRole(SPACE_FACTORY, spaceFactory);
+        _setDefaultRoyalty(royaltyReceiver, 500); // set default royalty to 5%
         MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY = maxSpaceshipUniverse1CirculatingSupply;
     }
 
@@ -138,12 +144,45 @@ contract SpaceshipUniverse1 is
     }
 
     /// @dev override approve to prevent locked tokens from being approved
+
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public override(IERC721, ERC721) onlyAllowedOperatorApproval(operator) {
+        super.setApprovalForAll(operator, approved);
+    }
+
     function approve(
+        address operator,
+        uint256 tokenId
+    ) public override(IERC721, ERC721) onlyAllowedOperatorApproval(operator) {
+        if (!unlocked[tokenId]) revert TokenLocked();
+        super.approve(operator, tokenId);
+    }
+
+    function transferFrom(
+        address from,
         address to,
         uint256 tokenId
-    ) public override(ERC721, IERC721) {
-        if (!unlocked[tokenId]) revert TokenLocked();
-        super.approve(to, tokenId);
+    ) public override(IERC721, ERC721) onlyAllowedOperator(from) {
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(IERC721, ERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public override(IERC721, ERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId, data);
     }
 
     function setDecentralizedTokenURIBase(
@@ -208,7 +247,12 @@ contract SpaceshipUniverse1 is
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721, IERC165, AccessControl) returns (bool) {
+    )
+        public
+        view
+        override(ERC2981, ERC721, IERC165, AccessControl)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }

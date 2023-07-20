@@ -10,16 +10,18 @@ import "./mocks/MockERC6551Account.sol";
 contract SpaceshipUniverse1Test is Test {
     SpaceshipUniverse1 public spaceship;
     address factory;
+    address royaltyReceiver;
     address[] users;
     uint256 totalUser = 5;
     uint16 maxSupply = 100;
 
     function setUp() public {
         factory = vm.addr(1);
+        royaltyReceiver = vm.addr(2);
         for (uint256 i = 0; i < totalUser; i++) {
-            users.push(vm.addr(i + 2));
+            users.push(vm.addr(i + 3));
         }
-        spaceship = new SpaceshipUniverse1(factory, maxSupply);
+        spaceship = new SpaceshipUniverse1(factory, maxSupply, royaltyReceiver);
     }
 
     function testMint() public {

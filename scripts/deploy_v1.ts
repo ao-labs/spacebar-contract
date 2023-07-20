@@ -48,7 +48,8 @@ async function main() {
 
 	const spaceshipUniverse1 = (await SpaceshipUniverse1.deploy(
 		spaceFactoryV1.address,
-		process.env.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
+		process.env.MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY,
+		process.env.DEFAULT_ADMIN_ADDRESS
 	)) as SpaceshipUniverse1
 
 	await spaceshipUniverse1.deployed()

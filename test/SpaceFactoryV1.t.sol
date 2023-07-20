@@ -52,7 +52,11 @@ contract SpaceFactoryV1Test is Test {
             false,
             IBadgeUniverse1.TokenType(0, 0)
         );
-        spaceship = new SpaceshipUniverse1(address(factory), maxSupply);
+        spaceship = new SpaceshipUniverse1(
+            address(factory),
+            maxSupply,
+            defaultAdmin
+        );
         badge = new BadgeUniverse1(address(factory));
         vm.startPrank(defaultAdmin);
         factory.setSpaceshipUniverse1(address(spaceship));
