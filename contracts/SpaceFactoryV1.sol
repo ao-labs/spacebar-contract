@@ -9,13 +9,7 @@ import "./interfaces/IBadgeUniverse1.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
-
-/* ============ Errors ============ */
-error OnlyOneProtoShipAtATime();
-error OnlyNFTOwner();
-error InvalidProtoShip();
-error AddressAlreadyRegistered();
-error NotWhiteListed();
+import "./helper/Error.sol";
 
 /// @title Space Factory V1
 /// @notice This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
@@ -26,7 +20,8 @@ contract SpaceFactoryV1 is
     ISpaceFactoryV1,
     Initializable,
     UUPSUpgradeable,
-    AccessControlUpgradeable
+    AccessControlUpgradeable,
+    Error
 {
     /* ============ Variables ============ */
 
@@ -81,16 +76,18 @@ contract SpaceFactoryV1 is
         emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
     }
 
-    /// @dev spaceshipUniverse1 address should only be set once and never change
-    function setSpaceshipUniverse1(address contractAddress) external {
+    function setSpaceshipUniverse1(
+        address contractAddress
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (address(spaceshipUniverse1) != address(0))
             revert AddressAlreadyRegistered();
         spaceshipUniverse1 = ISpaceshipUniverse1(contractAddress);
         emit SetSpaceshipUniverse1(contractAddress);
     }
 
-    /// @dev badgeUniverse1 address should only be set once and never change
-    function setBadgeUniverse1(address contractAddress) external {
+    function setBadgeUniverse1(
+        address contractAddress
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (address(badgeUniverse1) != address(0))
             revert AddressAlreadyRegistered();
         badgeUniverse1 = IBadgeUniverse1(contractAddress);
@@ -111,6 +108,13 @@ contract SpaceFactoryV1 is
         emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
     }
 
+    function transferDefaultAdmin(
+        address admin
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(DEFAULT_ADMIN_ROLE, admin);
+        renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
     /* ============ External Functions ============ */
 
     /// @notice Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
@@ -128,11 +132,13 @@ contract SpaceFactoryV1 is
 
         uint256 spaceshipTokenId = spaceshipUniverse1.nextTokenId();
 
+        // deploys TBA of spaceship (if not already deployed)
         _deployOrGetTokenBoundAccount(
             address(spaceshipUniverse1),
             spaceshipTokenId
         );
 
+        //@dev Protoship is minted to the TBA of the user's NFT
         address profileTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
             block.chainid,
