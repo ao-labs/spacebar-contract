@@ -8,9 +8,9 @@ contract Error {
     error OnlySpaceFactory();
     error OnlySpaceFactoryOrOwner();
     error InvalidTokenId();
-    error OnlyOneProtoShipAtATime();
+    error OnlyOneProtoshipAtATime();
     error OnlyNFTOwner();
-    error InvalidProtoShip();
+    error InvalidProtoship();
     error AddressAlreadyRegistered();
     error NotWhiteListed();
     error TokenLocked();

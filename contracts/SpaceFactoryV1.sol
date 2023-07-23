@@ -37,11 +37,11 @@ contract SpaceFactoryV1 is
     bool public isUniverse1Whitelisted;
     IBadgeUniverse1.TokenType universe1WhitelistBadgeType;
 
-    mapping(address => bool) public hasProtoShip;
+    mapping(address => bool) public hasProtoship;
 
     /* ============ Events ============ */
 
-    event MintProtoShipUniverse1(
+    event MintProtoshipUniverse1(
         address tokenContract,
         uint256 tokenId,
         uint256 spaceshipId
@@ -117,12 +117,12 @@ contract SpaceFactoryV1 is
 
     /* ============ External Functions ============ */
 
-    /// @notice Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
+    /// @notice Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
     /// @dev If the address already has TBA, it will use the existing TBA, and if the TBA
-    /// already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime).
+    /// already has a Protoship, it will revert(OnlyOneProtoshipAtATime).
     /// @param tokenContract TBA's contract address
     /// @param tokenId TBA's token ID
-    function mintProtoShipUniverse1(
+    function mintProtoshipUniverse1(
         address tokenContract,
         uint256 tokenId
     ) external virtual returns (address) {
@@ -160,8 +160,8 @@ contract SpaceFactoryV1 is
             }
         }
 
-        _mintProtoShipUniverse1(profileTBA);
-        emit MintProtoShipUniverse1(tokenContract, tokenId, spaceshipTokenId);
+        _mintProtoshipUniverse1(profileTBA);
+        emit MintProtoshipUniverse1(tokenContract, tokenId, spaceshipTokenId);
         return profileTBA;
     }
 
@@ -186,22 +186,22 @@ contract SpaceFactoryV1 is
         );
     }
 
-    /// @notice Burns a Proto-Ship from the address when it fails to meet requirements.
-    /// @dev Only service admin can call this function. The function will revert if the token is not a Proto-Ship.
+    /// @notice Burns a Protoship from the address when it fails to meet requirements.
+    /// @dev Only service admin can call this function. The function will revert if the token is not a Protoship.
     /// @param tokenId Token id to burn.
-    function burnProtoShipUniverse1(
+    function burnProtoshipUniverse1(
         uint256 tokenId
     ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
-        _burnProtoShipUniverse1(tokenId);
+        _burnProtoshipUniverse1(tokenId);
     }
 
-    /// @notice Upgrades Proto-Ship to Owner-Ship(aka. unlock).
-    /// @dev Only service admin can call this function. The function will revert if the token is not a Proto-Ship.
+    /// @notice Upgrades Protoship to Ownership(aka. unlock).
+    /// @dev Only service admin can call this function. The function will revert if the token is not a Protoship.
     /// @param tokenId Token id to upgrade
-    function upgradeToOwnerShipUniverse1(
+    function upgradeToOwnershipUniverse1(
         uint256 tokenId
     ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
-        _upgradeToOwnerShipUniverse1(tokenId);
+        _upgradeToOwnershipUniverse1(tokenId);
     }
 
     /* ============ View Functions ============ */
@@ -243,25 +243,25 @@ contract SpaceFactoryV1 is
             );
     }
 
-    function _mintProtoShipUniverse1(address to) internal virtual {
-        if (hasProtoShip[to]) revert OnlyOneProtoShipAtATime();
+    function _mintProtoshipUniverse1(address to) internal virtual {
+        if (hasProtoship[to]) revert OnlyOneProtoshipAtATime();
         spaceshipUniverse1.mint(to);
-        hasProtoShip[to] = true;
+        hasProtoship[to] = true;
     }
 
-    function _burnProtoShipUniverse1(uint256 tokenId) internal virtual {
-        address protoShipOwner = spaceshipUniverse1.ownerOf(tokenId);
-        if (!hasProtoShip[protoShipOwner]) revert InvalidProtoShip();
+    function _burnProtoshipUniverse1(uint256 tokenId) internal virtual {
+        address protoshipOwner = spaceshipUniverse1.ownerOf(tokenId);
+        if (!hasProtoship[protoshipOwner]) revert InvalidProtoship();
 
         spaceshipUniverse1.burn(tokenId);
-        delete hasProtoShip[protoShipOwner];
+        delete hasProtoship[protoshipOwner];
     }
 
-    function _upgradeToOwnerShipUniverse1(uint256 tokenId) internal virtual {
-        address protoShipOwner = spaceshipUniverse1.ownerOf(tokenId);
-        if (!hasProtoShip[protoShipOwner]) revert InvalidProtoShip();
+    function _upgradeToOwnershipUniverse1(uint256 tokenId) internal virtual {
+        address protoshipOwner = spaceshipUniverse1.ownerOf(tokenId);
+        if (!hasProtoship[protoshipOwner]) revert InvalidProtoship();
 
         spaceshipUniverse1.unlock(tokenId);
-        delete hasProtoShip[protoShipOwner];
+        delete hasProtoship[protoshipOwner];
     }
 }

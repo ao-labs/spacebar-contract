@@ -53,10 +53,10 @@ MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY=1024
 
 ### SpaceFactoryV1
 2d42c772: AddressAlreadyRegistered()  
-55c9b514: InvalidProtoShip()  
+55c9b514: InvalidProtoship()  
 6a9a57a5: NotWhiteListed()  
 d48af246: OnlyNFTOwner()  
-b06430b6: OnlyOneProtoShipAtATime()  
+b06430b6: OnlyOneProtoshipAtATime()  
 
 ### SpaceshipUniverse1
 de20ed63: OnlyLockedToken()  

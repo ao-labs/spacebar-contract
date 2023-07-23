@@ -1,23 +1,5 @@
 # Solidity API
 
-## TokenLocked
-
-```solidity
-error TokenLocked()
-```
-
-## OnlyLockedToken
-
-```solidity
-error OnlyLockedToken()
-```
-
-## ReachedMaxSupply
-
-```solidity
-error ReachedMaxSupply()
-```
-
 ## SpaceshipUniverse1
 
 Spaceship NFT for Spacebar Universe 1
@@ -50,6 +32,12 @@ uint256 nextTokenId
 
 _Returns the next token id to be minted_
 
+### spaceFactory
+
+```solidity
+address spaceFactory
+```
+
 ### SPACE_FACTORY
 
 ```solidity
@@ -70,10 +58,16 @@ mapping(uint256 => bool) unlocked
 string decentralizedTokenURIBase
 ```
 
+### onlySpaceFactory
+
+```solidity
+modifier onlySpaceFactory()
+```
+
 ### constructor
 
 ```solidity
-constructor(address spaceFactory, uint16 maxSpaceshipUniverse1CirculatingSupply) public
+constructor(address _spaceFactory, uint16 maxSpaceshipUniverse1CirculatingSupply, address defaultAdmin, address royaltyReceiver) public
 ```
 
 ### mint
@@ -82,7 +76,7 @@ constructor(address spaceFactory, uint16 maxSpaceshipUniverse1CirculatingSupply)
 function mint(address to) external returns (uint256)
 ```
 
-Mints a new Spaceship. Spaceships are locked by default (aka. Proto-Ship)
+Mints a new Spaceship. Spaceships are locked by default (aka. Protoship)
 
 _Only space factory contract can call this function._
 
@@ -90,7 +84,7 @@ _Only space factory contract can call this function._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| to | address | The address to mint the Proto-Ship to. This should be TBA's address as the Proto-Ship is initially bound to the TBA. |
+| to | address | The address to mint the Protoship to. This should be TBA's address as the Protoship is initially bound to the TBA. |
 
 ### unlock
 
@@ -98,7 +92,7 @@ _Only space factory contract can call this function._
 function unlock(uint256 tokenId) external
 ```
 
-Unlocks a Spaceship (aka. Proto-Ship becomes Owner-Ship)
+Unlocks a Spaceship (aka. Protoship becomes Ownership)
 
 _Only space factory contract can call this function, and from this point on,
 user fully owns the Spaceship and can transfer it to other users._
@@ -117,7 +111,7 @@ function burn(uint256 tokenId) external
 
 Burns a Spaceship
 
-_Only space factory contract can call this function, and only Proto-Ship can be burned._
+_Only space factory contract can call this function, and only Protoship can be burned._
 
 #### Parameters
 
@@ -141,13 +135,37 @@ _This function will only emit an event (ERC4906)_
 | ---- | ---- | ----------- |
 | tokenId | uint256 | of the Spaceship to update metadata |
 
-### approve
+### setApprovalForAll
 
 ```solidity
-function approve(address to, uint256 tokenId) public
+function setApprovalForAll(address operator, bool approved) public
 ```
 
 _override approve to prevent locked tokens from being approved_
+
+### approve
+
+```solidity
+function approve(address operator, uint256 tokenId) public
+```
+
+### transferFrom
+
+```solidity
+function transferFrom(address from, address to, uint256 tokenId) public
+```
+
+### safeTransferFrom
+
+```solidity
+function safeTransferFrom(address from, address to, uint256 tokenId) public
+```
+
+### safeTransferFrom
+
+```solidity
+function safeTransferFrom(address from, address to, uint256 tokenId, bytes data) public
+```
 
 ### setDecentralizedTokenURIBase
 

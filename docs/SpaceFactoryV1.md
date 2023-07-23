@@ -1,35 +1,5 @@
 # Solidity API
 
-## OnlyOneProtoShipAtATime
-
-```solidity
-error OnlyOneProtoShipAtATime()
-```
-
-## OnlyNFTOwner
-
-```solidity
-error OnlyNFTOwner()
-```
-
-## InvalidProtoShip
-
-```solidity
-error InvalidProtoShip()
-```
-
-## AddressAlreadyRegistered
-
-```solidity
-error AddressAlreadyRegistered()
-```
-
-## NotWhiteListed
-
-```solidity
-error NotWhiteListed()
-```
-
 ## SpaceFactoryV1
 
 This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
@@ -87,16 +57,16 @@ bool isUniverse1Whitelisted
 struct IBadgeUniverse1.TokenType universe1WhitelistBadgeType
 ```
 
-### hasProtoShip
+### hasProtoship
 
 ```solidity
-mapping(address => bool) hasProtoShip
+mapping(address => bool) hasProtoship
 ```
 
-### MintProtoShipUniverse1
+### MintProtoshipUniverse1
 
 ```solidity
-event MintProtoShipUniverse1(address tokenContract, uint256 tokenId, uint256 spaceshipId)
+event MintProtoshipUniverse1(address tokenContract, uint256 tokenId, uint256 spaceshipId)
 ```
 
 ### SetSpaceshipUniverse1
@@ -135,15 +105,11 @@ function initialize(address defaultAdmin, address serviceAdmin, address minterAd
 function setSpaceshipUniverse1(address contractAddress) external
 ```
 
-_spaceshipUniverse1 address should only be set once and never change_
-
 ### setBadgeUniverse1
 
 ```solidity
 function setBadgeUniverse1(address contractAddress) external
 ```
-
-_badgeUniverse1 address should only be set once and never change_
 
 ### setIsUniverse1Whitelisted
 
@@ -157,16 +123,22 @@ function setIsUniverse1Whitelisted(bool _isUniverse1Whitelisted) external
 function setUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) external
 ```
 
-### mintProtoShipUniverse1
+### transferDefaultAdmin
 
 ```solidity
-function mintProtoShipUniverse1(address tokenContract, uint256 tokenId) external virtual returns (address)
+function transferDefaultAdmin(address admin) external
 ```
 
-Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
+### mintProtoshipUniverse1
+
+```solidity
+function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external virtual returns (address)
+```
+
+Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
 
 _If the address already has TBA, it will use the existing TBA, and if the TBA
-already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime)._
+already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
 
 #### Parameters
 
@@ -181,15 +153,15 @@ already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime)._
 function mintWhitelistBadgeUniverse1(address tokenContract, uint256 tokenId, string tokenURI) external virtual
 ```
 
-### burnProtoShipUniverse1
+### burnProtoshipUniverse1
 
 ```solidity
-function burnProtoShipUniverse1(uint256 tokenId) external virtual
+function burnProtoshipUniverse1(uint256 tokenId) external virtual
 ```
 
-Burns a Proto-Ship from the address when it fails to meet requirements.
+Burns a Protoship from the address when it fails to meet requirements.
 
-_Only service admin can call this function. The function will revert if the token is not a Proto-Ship._
+_Only service admin can call this function. The function will revert if the token is not a Protoship._
 
 #### Parameters
 
@@ -197,15 +169,15 @@ _Only service admin can call this function. The function will revert if the toke
 | ---- | ---- | ----------- |
 | tokenId | uint256 | Token id to burn. |
 
-### upgradeToOwnerShipUniverse1
+### upgradeToOwnershipUniverse1
 
 ```solidity
-function upgradeToOwnerShipUniverse1(uint256 tokenId) external virtual
+function upgradeToOwnershipUniverse1(uint256 tokenId) external virtual
 ```
 
-Upgrades Proto-Ship to Owner-Ship(aka. unlock).
+Upgrades Protoship to Ownership(aka. unlock).
 
-_Only service admin can call this function. The function will revert if the token is not a Proto-Ship._
+_Only service admin can call this function. The function will revert if the token is not a Protoship._
 
 #### Parameters
 
@@ -239,21 +211,21 @@ function _authorizeUpgrade(address) internal
 function _deployOrGetTokenBoundAccount(address tokenContract, uint256 tokenId) internal virtual returns (address)
 ```
 
-### _mintProtoShipUniverse1
+### _mintProtoshipUniverse1
 
 ```solidity
-function _mintProtoShipUniverse1(address to) internal virtual
+function _mintProtoshipUniverse1(address to) internal virtual
 ```
 
-### _burnProtoShipUniverse1
+### _burnProtoshipUniverse1
 
 ```solidity
-function _burnProtoShipUniverse1(uint256 tokenId) internal virtual
+function _burnProtoshipUniverse1(uint256 tokenId) internal virtual
 ```
 
-### _upgradeToOwnerShipUniverse1
+### _upgradeToOwnershipUniverse1
 
 ```solidity
-function _upgradeToOwnerShipUniverse1(uint256 tokenId) internal virtual
+function _upgradeToOwnershipUniverse1(uint256 tokenId) internal virtual
 ```
 

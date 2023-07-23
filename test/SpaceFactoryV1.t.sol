@@ -67,7 +67,7 @@ contract SpaceFactoryV1Test is Test, Error {
         vm.stopPrank();
     }
 
-    function testMintProtoShipUniverse1() public {
+    function testMintProtoshipUniverse1() public {
         address user1ProfileTBA = registry.account(
             address(implementation),
             block.chainid,
@@ -84,7 +84,7 @@ contract SpaceFactoryV1Test is Test, Error {
         );
         assertEq(user1SpaceshipTBA.code.length, 0);
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
         assertGt(user1SpaceshipTBA.code.length, 0);
         (
             uint256 chainId,
@@ -104,7 +104,7 @@ contract SpaceFactoryV1Test is Test, Error {
             0 // salt
         );
         vm.prank(users[1]);
-        address user2ProfileTBA = factory.mintProtoShipUniverse1(
+        address user2ProfileTBA = factory.mintProtoshipUniverse1(
             address(externalERC721),
             1
         );
@@ -119,7 +119,7 @@ contract SpaceFactoryV1Test is Test, Error {
         assertEq(spaceship.ownerOf(tokenId2), user2ProfileTBA);
     }
 
-    function testMintProtoShipWhenTBAIsAlreadyDeployed() public {
+    function testMintProtoshipWhenTBAIsAlreadyDeployed() public {
         address user1ProfileTBA = registry.account(
             address(implementation),
             block.chainid,
@@ -137,7 +137,7 @@ contract SpaceFactoryV1Test is Test, Error {
         );
         assertGt(user1SpaceshipTBA.code.length, 0);
         vm.startPrank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
         (
             uint256 chainId,
             address tokenContract,
@@ -152,38 +152,38 @@ contract SpaceFactoryV1Test is Test, Error {
     function testDeployTBAAndMintWhenNotNFTOwner() public {
         vm.startPrank(users[0]);
         vm.expectRevert(OnlyNFTOwner.selector);
-        factory.mintProtoShipUniverse1(address(externalERC721), 1);
+        factory.mintProtoshipUniverse1(address(externalERC721), 1);
 
         vm.expectRevert();
         // should revert with random token contract address
-        factory.mintProtoShipUniverse1(address(vm.addr(333)), 1);
+        factory.mintProtoshipUniverse1(address(vm.addr(333)), 1);
     }
 
-    function testBurnProtoShip() public {
+    function testBurnProtoship() public {
         uint256 tokenId = 0;
         vm.prank(users[0]);
-        address tba = factory.mintProtoShipUniverse1(
+        address tba = factory.mintProtoshipUniverse1(
             address(externalERC721),
             tokenId
         );
         assertEq(spaceship.ownerOf(tokenId), tba);
         vm.prank(serviceAdmin);
-        factory.burnProtoShipUniverse1(tokenId);
+        factory.burnProtoshipUniverse1(tokenId);
         vm.expectRevert("ERC721: invalid token ID");
         spaceship.ownerOf(tokenId);
     }
 
-    function testBurnProtoShipRevert() public {
+    function testBurnProtoshipRevert() public {
         uint256 tokenId = 0;
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), tokenId);
+        factory.mintProtoshipUniverse1(address(externalERC721), tokenId);
         vm.startPrank(serviceAdmin);
-        factory.upgradeToOwnerShipUniverse1(tokenId);
-        vm.expectRevert(InvalidProtoShip.selector);
-        factory.burnProtoShipUniverse1(tokenId);
+        factory.upgradeToOwnershipUniverse1(tokenId);
+        vm.expectRevert(InvalidProtoship.selector);
+        factory.burnProtoshipUniverse1(tokenId);
 
         vm.expectRevert("ERC721: invalid token ID");
-        factory.burnProtoShipUniverse1(1);
+        factory.burnProtoshipUniverse1(1);
     }
 
     function testMaxSupply() public {
@@ -193,43 +193,43 @@ contract SpaceFactoryV1Test is Test, Error {
         );
         for (uint256 i = 0; i < maxSupply; i++) {
             vm.prank(users[i]);
-            factory.mintProtoShipUniverse1(address(externalERC721), i);
+            factory.mintProtoshipUniverse1(address(externalERC721), i);
         }
         assertEq(spaceship.currentSupply(), maxSupply);
         vm.prank(users[maxSupply]);
         vm.expectRevert(ReachedMaxSupply.selector);
-        factory.mintProtoShipUniverse1(address(externalERC721), maxSupply);
+        factory.mintProtoshipUniverse1(address(externalERC721), maxSupply);
 
         vm.prank(serviceAdmin);
-        factory.burnProtoShipUniverse1(0);
+        factory.burnProtoshipUniverse1(0);
         assertEq(spaceship.currentSupply(), maxSupply - 1);
 
         vm.prank(users[maxSupply]);
-        factory.mintProtoShipUniverse1(address(externalERC721), maxSupply);
+        factory.mintProtoshipUniverse1(address(externalERC721), maxSupply);
         assertEq(spaceship.currentSupply(), maxSupply);
     }
 
-    function testOnlyOneProtoShipPerUser() public {
+    function testOnlyOneProtoshipPerUser() public {
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
         vm.prank(users[0]);
-        vm.expectRevert(OnlyOneProtoShipAtATime.selector);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        vm.expectRevert(OnlyOneProtoshipAtATime.selector);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
         vm.prank(serviceAdmin);
-        factory.upgradeToOwnerShipUniverse1(0);
+        factory.upgradeToOwnershipUniverse1(0);
 
         vm.prank(users[0]);
-        // should not revert user doesn't have Proto-Ship (cuz it's upgraded to Owner-Ship)
-        factory.mintProtoShipUniverse1(address(externalERC721), 0); // mints token id 1 to user
+        // should not revert user doesn't have Protoship (cuz it's upgraded to Ownership)
+        factory.mintProtoshipUniverse1(address(externalERC721), 0); // mints token id 1 to user
 
         vm.prank(serviceAdmin);
-        factory.burnProtoShipUniverse1(1);
+        factory.burnProtoshipUniverse1(1);
 
         vm.prank(users[0]);
         // should not revert because token id 1 is burned
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
     }
 
     function testSettingSpaceshipUniverse1Revert() public {
@@ -246,7 +246,7 @@ contract SpaceFactoryV1Test is Test, Error {
         // should revert if the NFT's tba doesn't have the badge
         vm.expectRevert(NotWhiteListed.selector);
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
         vm.prank(minterAdmin);
         factory.mintWhitelistBadgeUniverse1(address(externalERC721), 0, uri);
@@ -260,7 +260,7 @@ contract SpaceFactoryV1Test is Test, Error {
         );
         assertEq(badge.ownerOf(0), user1ProfileTBA);
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
     }
 
     function testWhitelistBadgeRevert() public {
@@ -274,7 +274,7 @@ contract SpaceFactoryV1Test is Test, Error {
 
         vm.expectRevert(NotWhiteListed.selector);
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
         vm.prank(address(factory));
         // mint the right badge but to EOA, not TBA
@@ -282,7 +282,7 @@ contract SpaceFactoryV1Test is Test, Error {
 
         vm.expectRevert(NotWhiteListed.selector);
         vm.prank(users[0]);
-        factory.mintProtoShipUniverse1(address(externalERC721), 0);
+        factory.mintProtoshipUniverse1(address(externalERC721), 0);
     }
 
     function testTransferDefaultAdmin() public {

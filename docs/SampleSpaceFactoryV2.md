@@ -10,16 +10,16 @@ This contract is just for testing purposes
 uint256 test
 ```
 
-### mintProtoShipUniverse1
+### mintProtoshipUniverse1
 
 ```solidity
-function mintProtoShipUniverse1(address tokenContract, uint256 tokenId) external returns (address)
+function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external returns (address)
 ```
 
-Deploys a new Token Bound Account (TBA) and mint a Proto-Ship to the address
+Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
 
 _If the address already has TBA, it will use the existing TBA, and if the TBA
-already has a Proto-Ship, it will revert(OnlyOneProtoShipAtATime)._
+already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
 
 #### Parameters
 

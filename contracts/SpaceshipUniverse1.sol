@@ -80,7 +80,7 @@ contract SpaceshipUniverse1 is
     /// @dev constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
 
-    // @dev mapping from token ID to whether it is fully owned Owner-Ship
+    // @dev mapping from token ID to whether it is fully owned Ownership
     mapping(uint256 => bool) public unlocked;
 
     // Optional token URIs for decentralized storage

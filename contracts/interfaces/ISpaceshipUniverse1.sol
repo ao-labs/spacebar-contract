@@ -13,18 +13,18 @@ import "./IERC5192.sol";
 /// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
 /// The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
 interface ISpaceshipUniverse1 is IERC721, IERC5192 {
-    /// @notice Mints a new Spaceship. Spaceships are locked by default (aka. Proto-Ship)
+    /// @notice Mints a new Spaceship. Spaceships are locked by default (aka. Protoship)
     /// @dev Only space factory contract can call this function.
-    /// @param to The address to mint the Proto-Ship to.
-    /// This should be TBA's address as the Proto-Ship is initially bound to the TBA.
+    /// @param to The address to mint the Protoship to.
+    /// This should be TBA's address as the Protoship is initially bound to the TBA.
     function mint(address to) external returns (uint256 tokenId);
 
     /// @notice Burns a Spaceship
-    /// @dev Only space factory contract can call this function, and only Proto-Ship can be burned.
+    /// @dev Only space factory contract can call this function, and only Protoship can be burned.
     /// @param tokenId of the Spaceship to burn.
     function burn(uint256 tokenId) external;
 
-    /// @notice Unlocks a Spaceship (aka. Proto-Ship becomes Owner-Ship)
+    /// @notice Unlocks a Spaceship (aka. Protoship becomes Ownership)
     /// @dev Only space factory contract can call this function, and from this point on,
     /// user fully owns the Spaceship and can transfer it to other users.
     /// @param tokenId of the Spaceship to unlock.

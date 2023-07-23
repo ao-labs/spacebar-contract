@@ -16,7 +16,7 @@ The total circulating supply (minted - burned) is limited, and this limit is mai
 function mint(address to) external returns (uint256 tokenId)
 ```
 
-Mints a new Spaceship. Spaceships are locked by default (aka. Proto-Ship)
+Mints a new Spaceship. Spaceships are locked by default (aka. Protoship)
 
 _Only space factory contract can call this function._
 
@@ -24,7 +24,7 @@ _Only space factory contract can call this function._
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| to | address | The address to mint the Proto-Ship to. This should be TBA's address as the Proto-Ship is initially bound to the TBA. |
+| to | address | The address to mint the Protoship to. This should be TBA's address as the Protoship is initially bound to the TBA. |
 
 ### burn
 
@@ -34,7 +34,7 @@ function burn(uint256 tokenId) external
 
 Burns a Spaceship
 
-_Only space factory contract can call this function, and only Proto-Ship can be burned._
+_Only space factory contract can call this function, and only Protoship can be burned._
 
 #### Parameters
 
@@ -48,7 +48,7 @@ _Only space factory contract can call this function, and only Proto-Ship can be 
 function unlock(uint256 tokenId) external
 ```
 
-Unlocks a Spaceship (aka. Proto-Ship becomes Owner-Ship)
+Unlocks a Spaceship (aka. Protoship becomes Ownership)
 
 _Only space factory contract can call this function, and from this point on,
 user fully owns the Spaceship and can transfer it to other users._

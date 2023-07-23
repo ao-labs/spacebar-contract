@@ -1,29 +1,5 @@
 # Solidity API
 
-## CanNotTransfer
-
-```solidity
-error CanNotTransfer()
-```
-
-## CanNotApprove
-
-```solidity
-error CanNotApprove()
-```
-
-## OnlySpaceFactory
-
-```solidity
-error OnlySpaceFactory()
-```
-
-## InvalidTokenId
-
-```solidity
-error InvalidTokenId()
-```
-
 ## BadgeUniverse1
 
 _Souldbound Tokens(SBT) are non-transferable tokens._
@@ -48,16 +24,22 @@ address spaceFactory
 event MintBadge(address to, uint128 primaryType, uint128 secondaryType, uint256 tokenId, string tokenURI)
 ```
 
+### onlySpaceFactory
+
+```solidity
+modifier onlySpaceFactory()
+```
+
 ### constructor
 
 ```solidity
-constructor(address _spaceFactory) public
+constructor(address _spaceFactory, address defaultAdmin) public
 ```
 
 ### mintBadge
 
 ```solidity
-function mintBadge(address to, uint128 primaryType, uint128 secondaryType, string tokenURI) external
+function mintBadge(address to, uint128 primaryType, uint128 secondaryType, string tokenURI) public
 ```
 
 Mints a new badge
@@ -70,6 +52,12 @@ Mints a new badge
 | primaryType | uint128 | The primary type of the badge |
 | secondaryType | uint128 | The secondary type of the badge |
 | tokenURI | string |  |
+
+### burnBadge
+
+```solidity
+function burnBadge(uint256 tokenId) public
+```
 
 ### approve
 
