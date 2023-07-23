@@ -51,20 +51,16 @@ MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY=1024
 
 ## Error Signatures
 
-### SpaceFactoryV1
 2d42c772: AddressAlreadyRegistered()  
-55c9b514: InvalidProtoship()  
-6a9a57a5: NotWhiteListed()  
-d48af246: OnlyNFTOwner()  
-b06430b6: OnlyOneProtoshipAtATime()  
-
-### SpaceshipUniverse1
-de20ed63: OnlyLockedToken()  
-794bb39b: ReachedMaxSupply()  
-5a8181f7: TokenLocked()  
-
-### BadgeUniverse1
 a6c022e1: CanNotApprove()  
 1b5722f5: CanNotTransfer()  
+3d7555a9: InvalidProtoship()  
 3f6cc768: InvalidTokenId()  
+6a9a57a5: NotWhiteListed()  
+de20ed63: OnlyLockedToken()  
+d48af246: OnlyNFTOwner()  
+4913ed38: OnlyOneProtoshipAtATime()  
 d59ec5f1: OnlySpaceFactory()  
+ba378aba: OnlySpaceFactoryOrOwner()  
+794bb39b: ReachedMaxSupply()  
+5a8181f7: TokenLocked()  
