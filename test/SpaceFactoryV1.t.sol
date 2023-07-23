@@ -10,8 +10,10 @@ import "../contracts/SpaceFactoryV1.sol";
 import "../contracts/BadgeUniverse1.sol";
 import "./mocks/MockERC721.sol";
 import "../contracts/interfaces/IERC6551Account.sol";
+import "../contracts/helper/Error.sol";
 
-contract SpaceFactoryV1Test is Test {
+contract SpaceFactoryV1Test is Test, Error {
+    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
     ERC6551Registry public registry;
     ERC6551Account public erc6551Account;
     IERC6551Account public implementation;
@@ -55,9 +57,10 @@ contract SpaceFactoryV1Test is Test {
         spaceship = new SpaceshipUniverse1(
             address(factory),
             maxSupply,
+            defaultAdmin,
             defaultAdmin
         );
-        badge = new BadgeUniverse1(address(factory));
+        badge = new BadgeUniverse1(address(factory), defaultAdmin);
         vm.startPrank(defaultAdmin);
         factory.setSpaceshipUniverse1(address(spaceship));
         factory.setBadgeUniverse1(address(badge));
@@ -280,5 +283,26 @@ contract SpaceFactoryV1Test is Test {
         vm.expectRevert(NotWhiteListed.selector);
         vm.prank(users[0]);
         factory.mintProtoShipUniverse1(address(externalERC721), 0);
+    }
+
+    function testTransferDefaultAdmin() public {
+        vm.prank(users[0]);
+        vm.expectRevert(); //only default admin can transfer default admin
+        factory.transferDefaultAdmin(users[0]);
+
+        assertTrue(factory.hasRole(DEFAULT_ADMIN_ROLE, defaultAdmin));
+        vm.prank(defaultAdmin);
+        factory.transferDefaultAdmin(users[0]);
+
+        assertFalse(factory.hasRole(DEFAULT_ADMIN_ROLE, defaultAdmin));
+        assertTrue(factory.hasRole(DEFAULT_ADMIN_ROLE, users[0]));
+
+        vm.expectRevert();
+        vm.prank(defaultAdmin);
+        factory.setIsUniverse1Whitelisted(true);
+
+        vm.prank(users[0]);
+        factory.setIsUniverse1Whitelisted(true);
+        assertTrue(factory.isUniverse1Whitelisted());
     }
 }

@@ -6,10 +6,12 @@ import "../contracts/ERC6551/ERC6551Registry.sol";
 import "../contracts/SpaceFactoryV1.sol";
 import "../contracts/SpaceshipUniverse1.sol";
 import "./mocks/MockERC6551Account.sol";
+import "../contracts/helper/Error.sol";
 
-contract SpaceshipUniverse1Test is Test {
+contract SpaceshipUniverse1Test is Test, Error {
     SpaceshipUniverse1 public spaceship;
     address factory;
+    address admin;
     address royaltyReceiver;
     address[] users;
     uint256 totalUser = 5;
@@ -17,11 +19,17 @@ contract SpaceshipUniverse1Test is Test {
 
     function setUp() public {
         factory = vm.addr(1);
-        royaltyReceiver = vm.addr(2);
+        admin = vm.addr(2);
+        royaltyReceiver = vm.addr(3);
         for (uint256 i = 0; i < totalUser; i++) {
-            users.push(vm.addr(i + 3));
+            users.push(vm.addr(i + 4));
         }
-        spaceship = new SpaceshipUniverse1(factory, maxSupply, royaltyReceiver);
+        spaceship = new SpaceshipUniverse1(
+            factory,
+            maxSupply,
+            admin,
+            royaltyReceiver
+        );
     }
 
     function testMint() public {
@@ -105,10 +113,6 @@ contract SpaceshipUniverse1Test is Test {
     function testSupportsInterface() public {
         assertEq(spaceship.supportsInterface(type(IERC165).interfaceId), true);
         assertEq(spaceship.supportsInterface(type(IERC721).interfaceId), true);
-        assertEq(
-            spaceship.supportsInterface(type(IAccessControl).interfaceId),
-            true
-        );
     }
 
     function testDecentralizedTokenURI() public {

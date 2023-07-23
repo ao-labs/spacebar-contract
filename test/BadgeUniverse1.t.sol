@@ -7,8 +7,10 @@ import "../contracts/SpaceFactoryV1.sol";
 import "../contracts/BadgeUniverse1.sol";
 import "./mocks/MockERC6551Account.sol";
 import "./mocks/MockERC721.sol";
+import "../contracts/helper/Error.sol";
 
-contract BadgeUniverse1Test is Test {
+contract BadgeUniverse1Test is Test, Error {
+    address admin;
     address factory;
     BadgeUniverse1 badge;
     address user1;
@@ -30,10 +32,11 @@ contract BadgeUniverse1Test is Test {
     );
 
     function setUp() public {
-        factory = vm.addr(1);
-        user1 = vm.addr(2);
-        user2 = vm.addr(3);
-        badge = new BadgeUniverse1(factory);
+        admin = vm.addr(1);
+        factory = vm.addr(2);
+        user1 = vm.addr(3);
+        user2 = vm.addr(4);
+        badge = new BadgeUniverse1(factory, admin);
     }
 
     function testMint() public {
