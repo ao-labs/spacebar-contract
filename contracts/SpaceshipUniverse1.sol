@@ -2,16 +2,12 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
 import "./interfaces/IERC4906.sol";
-
-/* ============ Errors ============ */
-error TokenLocked();
-error OnlyLockedToken();
-error ReachedMaxSupply();
+import "./helper/Error.sol";
 
 /*
 ...........................................//............................................
@@ -70,7 +66,8 @@ contract SpaceshipUniverse1 is
     ISpaceshipUniverse1,
     ERC721,
     IERC4906,
-    AccessControl
+    Ownable,
+    Error
 {
     /* ============ Variables ============ */
 
@@ -78,6 +75,7 @@ contract SpaceshipUniverse1 is
     uint16 public immutable MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY;
     uint16 public currentSupply;
     uint256 public nextTokenId;
+    address public spaceFactory;
 
     /// @dev constant for the space factory role
     bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
@@ -89,14 +87,25 @@ contract SpaceshipUniverse1 is
     mapping(uint256 => string) private _decentralizedTokenURIs;
     string decentralizedTokenURIBase = "https://www.arweave.net/";
 
+    /* ============ Modifiers ============ */
+
+    modifier onlySpaceFactory() {
+        if (msg.sender != spaceFactory) {
+            revert OnlySpaceFactory();
+        }
+        _;
+    }
+
     /* ============ Constructor ============ */
 
     constructor(
-        address spaceFactory,
+        address _spaceFactory,
         uint16 maxSpaceshipUniverse1CirculatingSupply,
+        address defaultAdmin,
         address royaltyReceiver
     ) ERC721("Spaceship Universe1", "SPACESHIP-U1") {
-        _grantRole(SPACE_FACTORY, spaceFactory);
+        spaceFactory = _spaceFactory;
+        transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
         _setDefaultRoyalty(royaltyReceiver, 500); // set default royalty to 5%
         MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY = maxSpaceshipUniverse1CirculatingSupply;
     }
@@ -104,9 +113,7 @@ contract SpaceshipUniverse1 is
     /* ============ External Functions ============ */
 
     /// @inheritdoc ISpaceshipUniverse1
-    function mint(
-        address to
-    ) external onlyRole(SPACE_FACTORY) returns (uint256) {
+    function mint(address to) external onlySpaceFactory returns (uint256) {
         if (currentSupply == MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY)
             revert ReachedMaxSupply();
         unchecked {
@@ -123,14 +130,14 @@ contract SpaceshipUniverse1 is
     }
 
     /// @inheritdoc ISpaceshipUniverse1
-    function unlock(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
+    function unlock(uint256 tokenId) external onlySpaceFactory {
         if (unlocked[tokenId]) revert OnlyLockedToken();
         unlocked[tokenId] = true;
         emit Unlocked(tokenId);
     }
 
     /// @inheritdoc ISpaceshipUniverse1
-    function burn(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
+    function burn(uint256 tokenId) external onlySpaceFactory {
         if (unlocked[tokenId]) revert OnlyLockedToken();
         _burn(tokenId);
         unchecked {
@@ -139,7 +146,7 @@ contract SpaceshipUniverse1 is
     }
 
     /// @inheritdoc ISpaceshipUniverse1
-    function updateMetadata(uint256 tokenId) external onlyRole(SPACE_FACTORY) {
+    function updateMetadata(uint256 tokenId) external onlySpaceFactory {
         emit MetadataUpdate(tokenId);
     }
 
@@ -187,14 +194,14 @@ contract SpaceshipUniverse1 is
 
     function setDecentralizedTokenURIBase(
         string memory _decentralizedTokenURIBase_
-    ) external onlyRole(SPACE_FACTORY) {
+    ) external onlySpaceFactory {
         decentralizedTokenURIBase = _decentralizedTokenURIBase_;
     }
 
     function setDecentralizedTokenURI(
         uint256 tokenId,
         string memory decentralizedTokenURI
-    ) external onlyRole(SPACE_FACTORY) {
+    ) external onlySpaceFactory {
         _decentralizedTokenURIs[tokenId] = decentralizedTokenURI;
         emit MetadataUpdate(tokenId);
     }
@@ -247,12 +254,7 @@ contract SpaceshipUniverse1 is
 
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        override(ERC2981, ERC721, IERC165, AccessControl)
-        returns (bool)
-    {
+    ) public view override(ERC2981, ERC721, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

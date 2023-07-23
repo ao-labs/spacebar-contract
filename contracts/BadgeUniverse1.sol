@@ -2,19 +2,14 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IBadgeUniverse1.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
-
-/* ============ Errors ============ */
-error CanNotTransfer();
-error CanNotApprove();
-error OnlySpaceFactory();
-error OnlySpaceFactoryOrOwner();
-error InvalidTokenId();
+import "./helper/Error.sol";
 
 /// @title Badge(Soulbound Token)contract for Spacebar Universe 1
 /// @dev Souldbound Tokens(SBT) are non-transferable tokens.
-contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1 {
+contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     /* ============ Variables ============ */
 
     /// @dev The total supply of tokens
@@ -33,10 +28,23 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1 {
         string tokenURI
     );
 
+    /* ============ Modifiers ============ */
+
+    modifier onlySpaceFactory() {
+        if (msg.sender != spaceFactory) {
+            revert OnlySpaceFactory();
+        }
+        _;
+    }
+
     /* ============ Constructor ============ */
 
-    constructor(address _spaceFactory) ERC721("Badge Universe1", "BADGE-U1") {
+    constructor(
+        address _spaceFactory,
+        address defaultAdmin
+    ) ERC721("Badge Universe1", "BADGE-U1") {
         spaceFactory = _spaceFactory;
+        transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
     }
 
     /* ============ External Functions ============ */
@@ -49,10 +57,7 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1 {
         uint128 primaryType,
         uint128 secondaryType,
         string memory tokenURI
-    ) public {
-        if (msg.sender != spaceFactory) {
-            revert OnlySpaceFactory();
-        }
+    ) public onlySpaceFactory {
         _mint(to, totalSupply);
         _setTokenURI(totalSupply, tokenURI);
         _tokenTypes[totalSupply] = TokenType(primaryType, secondaryType);
