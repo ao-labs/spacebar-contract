@@ -56,6 +56,9 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
         uint128 secondaryType,
         string memory tokenURI
     ) public onlySpaceFactory {
+        if (bytes(tokenURI).length == 0) {
+            revert InvalidTokenURI();
+        }
         _mint(to, totalSupply);
         _setTokenURI(totalSupply, tokenURI);
         _tokenTypes[totalSupply] = TokenType(primaryType, secondaryType);

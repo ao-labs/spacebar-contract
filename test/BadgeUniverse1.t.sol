@@ -47,6 +47,10 @@ contract BadgeUniverse1Test is Test, Error {
         vm.expectRevert(OnlySpaceFactory.selector);
         badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
 
+        vm.prank(factory);
+        vm.expectRevert(InvalidTokenURI.selector);
+        badge.mintBadge(user1, primaryType, secondaryType, "");
+
         vm.expectRevert(InvalidTokenId.selector);
         badge.getTokenType(tokenId);
 
