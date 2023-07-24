@@ -141,7 +141,7 @@ _This function will only emit an event (ERC4906)_
 function setApprovalForAll(address operator, bool approved) public
 ```
 
-_override approve to prevent locked tokens from being approved_
+_override the ERC721 transfer and approval methods for Operator Filterer_
 
 ### approve
 
@@ -172,6 +172,8 @@ function safeTransferFrom(address from, address to, uint256 tokenId, bytes data)
 ```solidity
 function setDecentralizedTokenURIBase(string _decentralizedTokenURIBase_) external
 ```
+
+_In the future, Spaceship's token URI will be stored on decentralized storage_
 
 ### setDecentralizedTokenURI
 

@@ -54,7 +54,10 @@ contract SpaceFactoryV1 is
     /* ============ Constructor ============ */
 
     // @TODO uncomment this when we are ready to deploy
-    // constructor() initializer {}
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function initialize(
         address defaultAdmin,
@@ -74,11 +77,14 @@ contract SpaceFactoryV1 is
         universe1WhitelistBadgeType = _universe1WhitelistBadgeType;
         emit SetIsUniverse1Whitelisted(_isUniverse1Whitelisted);
         emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
+        /// @audit should invoke __UUPSUpgradeable_init() here?
     }
+
+    /* ============ Admin Functions ============ */
 
     function setSpaceshipUniverse1(
         address contractAddress
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         if (address(spaceshipUniverse1) != address(0))
             revert AddressAlreadyRegistered();
         spaceshipUniverse1 = ISpaceshipUniverse1(contractAddress);
@@ -87,7 +93,7 @@ contract SpaceFactoryV1 is
 
     function setBadgeUniverse1(
         address contractAddress
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         if (address(badgeUniverse1) != address(0))
             revert AddressAlreadyRegistered();
         badgeUniverse1 = IBadgeUniverse1(contractAddress);
@@ -96,28 +102,28 @@ contract SpaceFactoryV1 is
 
     function setIsUniverse1Whitelisted(
         bool _isUniverse1Whitelisted
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         isUniverse1Whitelisted = _isUniverse1Whitelisted;
         emit SetIsUniverse1Whitelisted(_isUniverse1Whitelisted);
     }
 
     function setUniverse1WhitelistBadgeType(
         IBadgeUniverse1.TokenType memory _universe1WhitelistBadgeType
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         universe1WhitelistBadgeType = _universe1WhitelistBadgeType;
         emit SetUniverse1WhitelistBadgeType(_universe1WhitelistBadgeType);
     }
 
     function transferDefaultAdmin(
         address admin
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(DEFAULT_ADMIN_ROLE, admin);
         renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /* ============ External Functions ============ */
 
-    /// @notice Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
+    /// @notice mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
     /// @dev If the address already has TBA, it will use the existing TBA, and if the TBA
     /// already has a Protoship, it will revert(OnlyOneProtoshipAtATime).
     /// @param tokenContract TBA's contract address
@@ -129,17 +135,9 @@ contract SpaceFactoryV1 is
         if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
             revert OnlyNFTOwner();
         }
-
-        uint256 spaceshipTokenId = spaceshipUniverse1.nextTokenId();
-
-        // deploys TBA of spaceship (if not already deployed)
-        _deployOrGetTokenBoundAccount(
-            address(spaceshipUniverse1),
-            spaceshipTokenId
-        );
-
         //@dev Protoship is minted to the TBA of the user's NFT
-        address profileTBA = tokenBoundRegistry.account(
+        // This is different from spaceship's TBA from the above lines
+        address nftTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
             block.chainid,
             tokenContract,
@@ -147,11 +145,11 @@ contract SpaceFactoryV1 is
             0
         );
 
-        //@dev during whitelisting period TBA must own the specific type of badge
+        //@dev during whitelist period TBA must own the specific type of badge
         if (isUniverse1Whitelisted) {
             if (
                 !badgeUniverse1.isOwnerOfTokenType(
-                    profileTBA,
+                    nftTBA,
                     universe1WhitelistBadgeType.primaryType,
                     universe1WhitelistBadgeType.secondaryType
                 )
@@ -160,11 +158,24 @@ contract SpaceFactoryV1 is
             }
         }
 
-        _mintProtoshipUniverse1(profileTBA);
+        uint256 spaceshipTokenId = spaceshipUniverse1.nextTokenId();
+
+        /// deploys TBA of spaceship (if not already deployed)
+        /// TBA can be deployed before minting because the address is deterministic
+        _deployOrGetTokenBoundAccount(
+            address(spaceshipUniverse1),
+            spaceshipTokenId
+        );
+
+        _mintProtoshipUniverse1(nftTBA);
         emit MintProtoshipUniverse1(tokenContract, tokenId, spaceshipTokenId);
-        return profileTBA;
+        return nftTBA;
     }
 
+    /// @notice mints a whitelist badge(SBT) to the TBA address of user's NFT.
+    /// During whitelist period, user must own the specific type of badge to mint a Protoship.
+    /// @param tokenContract User NFT's contract address
+    /// @param tokenId NFT's token ID
     function mintWhitelistBadgeUniverse1(
         address tokenContract,
         uint256 tokenId,
@@ -207,7 +218,7 @@ contract SpaceFactoryV1 is
     /* ============ View Functions ============ */
 
     ///@dev Returns the TBA address of SpaceshipUniverse1
-    ///@param tokenId ID of the token
+    ///@param tokenId Spaceship token id
     function getSpaceshipUniverse1TBA(
         uint256 tokenId
     ) external view returns (address) {
@@ -244,6 +255,7 @@ contract SpaceFactoryV1 is
     }
 
     function _mintProtoshipUniverse1(address to) internal virtual {
+        // If the address already has a Protoship, it will revert
         if (hasProtoship[to]) revert OnlyOneProtoshipAtATime();
         spaceshipUniverse1.mint(to);
         hasProtoship[to] = true;
@@ -261,6 +273,7 @@ contract SpaceFactoryV1 is
         address protoshipOwner = spaceshipUniverse1.ownerOf(tokenId);
         if (!hasProtoship[protoshipOwner]) revert InvalidProtoship();
 
+        // By unlocking the Protoship, it becomes Ownership, and users can freely transfer it.
         spaceshipUniverse1.unlock(tokenId);
         delete hasProtoship[protoshipOwner];
     }

@@ -2,6 +2,8 @@
 
 ## Error
 
+_Contracts should inherit from this contract to use custom errors_
+
 ### CanNotTransfer
 
 ```solidity
@@ -30,6 +32,12 @@ error OnlySpaceFactoryOrOwner()
 
 ```solidity
 error InvalidTokenId()
+```
+
+### InvalidTokenURI
+
+```solidity
+error InvalidTokenURI()
 ```
 
 ### OnlyOneProtoshipAtATime

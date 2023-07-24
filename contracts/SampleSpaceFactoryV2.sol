@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "./SpaceFactoryV1.sol";
 
 /// @title SpaceFactoryV2
-/// @notice This contract is just for testing purposes
+/// @notice This contract is just for testing upgradeability
 contract SpaceFactoryV2 is SpaceFactoryV1 {
     uint256 public test;
 

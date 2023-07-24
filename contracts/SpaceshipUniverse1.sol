@@ -121,12 +121,12 @@ contract SpaceshipUniverse1 is
         }
 
         _mint(to, nextTokenId);
-        emit Locked(nextTokenId);
+        emit Locked(nextTokenId); // Protoship is locked by default
 
         unchecked {
             ++nextTokenId;
         }
-        return nextTokenId - 1; //return tokenId
+        return nextTokenId - 1; //returns current tokenId
     }
 
     /// @inheritdoc ISpaceshipUniverse1
@@ -150,8 +150,7 @@ contract SpaceshipUniverse1 is
         emit MetadataUpdate(tokenId);
     }
 
-    /// @dev override approve to prevent locked tokens from being approved
-
+    /// @dev override the ERC721 transfer and approval methods for Operator Filterer
     function setApprovalForAll(
         address operator,
         bool approved
@@ -163,7 +162,7 @@ contract SpaceshipUniverse1 is
         address operator,
         uint256 tokenId
     ) public override(IERC721, ERC721) onlyAllowedOperatorApproval(operator) {
-        if (!unlocked[tokenId]) revert TokenLocked();
+        if (!unlocked[tokenId]) revert TokenLocked(); // prevent locked tokens from being approved
         super.approve(operator, tokenId);
     }
 
@@ -192,6 +191,7 @@ contract SpaceshipUniverse1 is
         super.safeTransferFrom(from, to, tokenId, data);
     }
 
+    /// @dev In the future, Spaceship's token URI will be stored on decentralized storage
     function setDecentralizedTokenURIBase(
         string memory _decentralizedTokenURIBase_
     ) external onlySpaceFactory {
@@ -238,6 +238,7 @@ contract SpaceshipUniverse1 is
 
         string memory _decentralizedTokenURI = _decentralizedTokenURIs[tokenId];
 
+        // If the token has decentralized token URI, return it
         if (bytes(_decentralizedTokenURI).length > 0) {
             return
                 string(
@@ -247,6 +248,8 @@ contract SpaceshipUniverse1 is
                     )
                 );
         }
+
+        // Otherwise, return the default token URI
         return super.tokenURI(tokenId);
     }
 

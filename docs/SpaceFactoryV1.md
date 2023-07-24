@@ -102,31 +102,31 @@ function initialize(address defaultAdmin, address serviceAdmin, address minterAd
 ### setSpaceshipUniverse1
 
 ```solidity
-function setSpaceshipUniverse1(address contractAddress) external
+function setSpaceshipUniverse1(address contractAddress) external virtual
 ```
 
 ### setBadgeUniverse1
 
 ```solidity
-function setBadgeUniverse1(address contractAddress) external
+function setBadgeUniverse1(address contractAddress) external virtual
 ```
 
 ### setIsUniverse1Whitelisted
 
 ```solidity
-function setIsUniverse1Whitelisted(bool _isUniverse1Whitelisted) external
+function setIsUniverse1Whitelisted(bool _isUniverse1Whitelisted) external virtual
 ```
 
 ### setUniverse1WhitelistBadgeType
 
 ```solidity
-function setUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) external
+function setUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) external virtual
 ```
 
 ### transferDefaultAdmin
 
 ```solidity
-function transferDefaultAdmin(address admin) external
+function transferDefaultAdmin(address admin) external virtual
 ```
 
 ### mintProtoshipUniverse1
@@ -135,7 +135,7 @@ function transferDefaultAdmin(address admin) external
 function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external virtual returns (address)
 ```
 
-Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
+mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
 
 _If the address already has TBA, it will use the existing TBA, and if the TBA
 already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
@@ -152,6 +152,17 @@ already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
 ```solidity
 function mintWhitelistBadgeUniverse1(address tokenContract, uint256 tokenId, string tokenURI) external virtual
 ```
+
+mints a whitelist badge(SBT) to the TBA address of user's NFT.
+During whitelist period, user must own the specific type of badge to mint a Protoship.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenContract | address | User NFT's contract address |
+| tokenId | uint256 | NFT's token ID |
+| tokenURI | string |  |
 
 ### burnProtoshipUniverse1
 
@@ -197,7 +208,7 @@ _Returns the TBA address of SpaceshipUniverse1_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | ID of the token |
+| tokenId | uint256 | Spaceship token id |
 
 ### _authorizeUpgrade
 

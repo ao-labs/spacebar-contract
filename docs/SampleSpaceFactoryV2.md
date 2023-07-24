@@ -2,7 +2,7 @@
 
 ## SpaceFactoryV2
 
-This contract is just for testing purposes
+This contract is just for testing upgradeability
 
 ### test
 
@@ -16,7 +16,7 @@ uint256 test
 function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external returns (address)
 ```
 
-Deploys a new Token Bound Account (TBA) and mint a Protoship to the address
+mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
 
 _If the address already has TBA, it will use the existing TBA, and if the TBA
 already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._

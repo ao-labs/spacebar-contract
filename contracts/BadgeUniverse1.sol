@@ -49,8 +49,6 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
 
     /* ============ External Functions ============ */
 
-    // @TODO add parameter checks
-    // @TODO might want to implement custom token URI (not by increasing integer)
     /// @inheritdoc IBadgeUniverse1
     function mintBadge(
         address to,
