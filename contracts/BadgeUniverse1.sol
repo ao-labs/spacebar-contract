@@ -7,8 +7,8 @@ import "./interfaces/IBadgeUniverse1.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
 import "./helper/Error.sol";
 
-/// @title Badge(Soulbound Token)contract for Spacebar Universe 1
-/// @dev Souldbound Tokens(SBT) are non-transferable tokens.
+/// @title Badge (Soulbound Token) contract interface for Spacebar Universe 1.
+/// @dev Soulbound Tokens (SBT) are non-transferable tokens.
 contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     /* ============ Variables ============ */
 

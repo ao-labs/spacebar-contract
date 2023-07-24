@@ -12,10 +12,10 @@ import "./interfaces/ISpaceFactoryV1.sol";
 import "./helper/Error.sol";
 
 /// @title Space Factory V1
-/// @notice This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
-/// These assets currently include Spaceship NFTs from Universe1, but can be extended to support many more.
-/// This is because the contract utilizes the ERC1967 proxy + UUPSUpgradeable, enabling it to be
-/// upgraded in the future to support additional features and asset types.
+/// @notice This contract is responsible for the minting, upgrading, and burning of assets for the Spacebar project.
+/// While currently supporting Spaceship NFTs from Universe1, it has the potential to support a wider variety of assets.
+/// Thanks to its use of the ERC1967 proxy and UUPSUpgradeable, this contract can be upgraded in the future
+/// to accommodate additional features and asset types.
 contract SpaceFactoryV1 is
     ISpaceFactoryV1,
     Initializable,
@@ -123,11 +123,11 @@ contract SpaceFactoryV1 is
 
     /* ============ External Functions ============ */
 
-    /// @notice mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
-    /// @dev If the address already has TBA, it will use the existing TBA, and if the TBA
-    /// already has a Protoship, it will revert(OnlyOneProtoshipAtATime).
-    /// @param tokenContract TBA's contract address
-    /// @param tokenId TBA's token ID
+    /// @notice Mints a Protoship to the TBA address associated with the user's NFT and deploys the TBA of the spaceship.
+    /// @dev If the address already has a TBA, it will use the existing TBA. If the TBA already has a Protoship,
+    /// it will revert with the error 'OnlyOneProtoshipAtATime'.
+    /// @param tokenContract The contract address of the TBA.
+    /// @param tokenId The token ID of the TBA.
     function mintProtoshipUniverse1(
         address tokenContract,
         uint256 tokenId
@@ -172,10 +172,10 @@ contract SpaceFactoryV1 is
         return nftTBA;
     }
 
-    /// @notice mints a whitelist badge(SBT) to the TBA address of user's NFT.
-    /// During whitelist period, user must own the specific type of badge to mint a Protoship.
-    /// @param tokenContract User NFT's contract address
-    /// @param tokenId NFT's token ID
+    /// @notice Mints a whitelist badge (SBT) to the TBA address associated with the user's NFT.
+    /// During the whitelist period, a user must own a specific type of badge to mint a Protoship.
+    /// @param tokenContract The contract address of the user's NFT.
+    /// @param tokenId The token ID of the user's NFT.
     function mintWhitelistBadgeUniverse1(
         address tokenContract,
         uint256 tokenId,
@@ -197,18 +197,18 @@ contract SpaceFactoryV1 is
         );
     }
 
-    /// @notice Burns a Protoship from the address when it fails to meet requirements.
-    /// @dev Only service admin can call this function. The function will revert if the token is not a Protoship.
-    /// @param tokenId Token id to burn.
+    /// @notice Burns a Protoship from an address when it fails to meet the required conditions.
+    /// @dev Only a service admin can call this function. The function will revert if the specified token is not a Protoship.
+    /// @param tokenId The ID of the token to burn.
     function burnProtoshipUniverse1(
         uint256 tokenId
     ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
         _burnProtoshipUniverse1(tokenId);
     }
 
-    /// @notice Upgrades Protoship to Ownership(aka. unlock).
-    /// @dev Only service admin can call this function. The function will revert if the token is not a Protoship.
-    /// @param tokenId Token id to upgrade
+    /// @notice Upgrades a Protoship to Ownership status (unlock).
+    /// @dev Only a service admin can call this function. The function will revert if the specified token is not a Protoship.
+    /// @param tokenId The ID of the token to upgrade.
     function upgradeToOwnershipUniverse1(
         uint256 tokenId
     ) external virtual onlyRole(SERVICE_ADMIN_ROLE) {
@@ -273,7 +273,7 @@ contract SpaceFactoryV1 is
         address protoshipOwner = spaceshipUniverse1.ownerOf(tokenId);
         if (!hasProtoship[protoshipOwner]) revert InvalidProtoship();
 
-        // By unlocking the Protoship, it becomes Ownership, and users can freely transfer it.
+        // By unlocking the Protoship, it transitions to Ownership status, allowing users to transfer it freely.
         spaceshipUniverse1.unlock(tokenId);
         delete hasProtoship[protoshipOwner];
     }

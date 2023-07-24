@@ -54,12 +54,12 @@ import "./helper/Error.sol";
 
 /// @title SpaceshipUniverse1
 /// @notice Spaceship NFT for Spacebar Universe 1
-/// This contract introduces the concept of "Active Ownership", where the user must fulfill
+/// This contract introduces the concept of "Active Ownership", wherein the user must fulfill
 /// certain conditions to gain full ownership of a spaceship NFT.
 /// Until these conditions are met, the spaceship is locked and cannot be transferred.
-/// For above purpose, this contract implements ERC5192.
-/// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
-/// The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
+/// For the above purpose, this contract implements ERC5192.
+/// Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined later).
+/// The total circulating supply (minted minus burned) is limited.
 contract SpaceshipUniverse1 is
     DefaultOperatorFilterer,
     ERC2981,
