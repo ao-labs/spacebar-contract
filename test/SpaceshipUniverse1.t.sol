@@ -89,6 +89,14 @@ contract SpaceshipUniverse1Test is Test, Error {
         // cannot unlock unlocked token
         vm.expectRevert(OnlyLockedToken.selector);
         spaceship.unlock(tokenId);
+
+        vm.stopPrank();
+
+        // now the user can freely transfer his or her spaceships
+        assertEq(spaceship.ownerOf(tokenId), users[0]);
+        vm.prank(users[0]);
+        spaceship.transferFrom(users[0], users[1], tokenId);
+        assertEq(spaceship.ownerOf(tokenId), users[1]);
     }
 
     function testLockedToken() public {
