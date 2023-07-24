@@ -71,14 +71,13 @@ contract SpaceshipUniverse1 is
 {
     /* ============ Variables ============ */
 
-    /// @dev Circulalting supply of Spaceship NFT from Universe1 is fixed
+    /// @dev Circulalting supply of Spaceship Universe1 is fixed
     uint16 public immutable MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY;
     uint16 public currentSupply;
     uint256 public nextTokenId;
     address public spaceFactory;
 
-    /// @dev constant for the space factory role
-    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY");
+    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY"); //space factory contract
 
     // @dev mapping from token ID to whether it is fully owned Ownership
     mapping(uint256 => bool) public unlocked;

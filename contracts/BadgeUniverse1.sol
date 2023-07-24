@@ -12,7 +12,6 @@ import "./helper/Error.sol";
 contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     /* ============ Variables ============ */
 
-    /// @dev The total supply of tokens
     uint256 public totalSupply;
     address public immutable spaceFactory;
     mapping(uint256 => TokenType) private _tokenTypes;

@@ -25,10 +25,9 @@ contract SpaceFactoryV1 is
 {
     /* ============ Variables ============ */
 
-    /// @dev The constant for the service admin role
     bytes32 public constant SERVICE_ADMIN_ROLE =
-        keccak256("SERVICE_ADMIN_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+        keccak256("SERVICE_ADMIN_ROLE"); // spacebar's server key
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE"); // whitelist badge minter
 
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
