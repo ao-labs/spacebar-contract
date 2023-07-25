@@ -56,6 +56,7 @@ MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY=1024
 2d42c772: AddressAlreadyRegistered()  
 a6c022e1: CanNotApprove()  
 1b5722f5: CanNotTransfer()  
+ad67865d: InvalidListLength()  
 3d7555a9: InvalidProtoship()  
 3f6cc768: InvalidTokenId()  
 13f04adb: InvalidTokenURI()  

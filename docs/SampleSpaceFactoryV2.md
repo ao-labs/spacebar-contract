@@ -16,15 +16,15 @@ uint256 test
 function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external returns (address)
 ```
 
-mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
+Mints a Protoship to the TBA address associated with the user's NFT and deploys the TBA of the spaceship.
 
-_If the address already has TBA, it will use the existing TBA, and if the TBA
-already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
+_If the address already has a TBA, it will use the existing TBA. If the TBA already has a Protoship,
+it will revert with the error 'OnlyOneProtoshipAtATime'._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenContract | address | TBA's contract address |
-| tokenId | uint256 | TBA's token ID |
+| tokenContract | address | The contract address of the TBA. |
+| tokenId | uint256 | The token ID of the TBA. |
 
