@@ -3,12 +3,12 @@
 ## SpaceshipUniverse1
 
 Spaceship NFT for Spacebar Universe 1
-This contract introduces the concept of "Active Ownership", where the user must fulfill
+This contract introduces the concept of "Active Ownership", wherein the user must fulfill
 certain conditions to gain full ownership of a spaceship NFT.
 Until these conditions are met, the spaceship is locked and cannot be transferred.
-For above purpose, this contract implements ERC5192.
-Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined).
-The total circulating supply (minted - burned) is limited, and this limit is maintained in the Space Factory contract.
+For the above purpose, this contract implements ERC5192.
+Additionally, the Space Factory reserves the right to burn the spaceship under specific conditions (to be defined later).
+The total circulating supply (minted minus burned) is limited.
 
 ### MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
 
@@ -16,7 +16,7 @@ The total circulating supply (minted - burned) is limited, and this limit is mai
 uint16 MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY
 ```
 
-_Circulalting supply of Spaceship NFT from Universe1 is fixed_
+_Circulalting supply of Spaceship Universe1 is fixed_
 
 ### currentSupply
 
@@ -30,7 +30,7 @@ uint16 currentSupply
 uint256 nextTokenId
 ```
 
-_Returns the next token id to be minted_
+_Returns the ID of the next token to be minted._
 
 ### spaceFactory
 
@@ -43,8 +43,6 @@ address spaceFactory
 ```solidity
 bytes32 SPACE_FACTORY
 ```
-
-_constant for the space factory role_
 
 ### unlocked
 
@@ -76,15 +74,15 @@ constructor(address _spaceFactory, uint16 maxSpaceshipUniverse1CirculatingSupply
 function mint(address to) external returns (uint256)
 ```
 
-Mints a new Spaceship. Spaceships are locked by default (aka. Protoship)
+Mints a new Spaceship. Spaceships are locked by default (also known as Protoships).
 
-_Only space factory contract can call this function._
+_Only the space factory contract can call this function._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| to | address | The address to mint the Protoship to. This should be TBA's address as the Protoship is initially bound to the TBA. |
+| to | address | The address to which the Protoship will be minted. This should be TBA's address, as the Protoship is initially bound to the TBA. |
 
 ### unlock
 
@@ -92,16 +90,16 @@ _Only space factory contract can call this function._
 function unlock(uint256 tokenId) external
 ```
 
-Unlocks a Spaceship (aka. Protoship becomes Ownership)
+Unlocks a Spaceship (i.e., a Protoship becomes Ownership).
 
-_Only space factory contract can call this function, and from this point on,
-user fully owns the Spaceship and can transfer it to other users._
+_Only the space factory contract can call this function. From this point on,
+the user fully owns the Spaceship and can transfer it to other users._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | of the Spaceship to unlock. |
+| tokenId | uint256 | The ID of the Spaceship to unlock. |
 
 ### burn
 
@@ -109,15 +107,15 @@ user fully owns the Spaceship and can transfer it to other users._
 function burn(uint256 tokenId) external
 ```
 
-Burns a Spaceship
+Burns a Spaceship.
 
-_Only space factory contract can call this function, and only Protoship can be burned._
+_Only the space factory contract can call this function, and only a Protoship can be burned._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | of the Spaceship to burn. |
+| tokenId | uint256 | The ID of the Spaceship to burn. |
 
 ### updateMetadata
 
@@ -125,15 +123,15 @@ _Only space factory contract can call this function, and only Protoship can be b
 function updateMetadata(uint256 tokenId) external
 ```
 
-Called when metadata of a Spaceship is updated
+Called when the metadata of a Spaceship is updated.
 
-_This function will only emit an event (ERC4906)_
+_This function will only emit an event (ERC4906)._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | of the Spaceship to update metadata |
+| tokenId | uint256 | The ID of the Spaceship for which to update metadata. |
 
 ### setApprovalForAll
 

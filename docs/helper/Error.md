@@ -40,6 +40,12 @@ error InvalidTokenId()
 error InvalidTokenURI()
 ```
 
+### InvalidListLength
+
+```solidity
+error InvalidListLength()
+```
+
 ### OnlyOneProtoshipAtATime
 
 ```solidity
