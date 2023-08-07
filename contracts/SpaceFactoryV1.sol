@@ -45,6 +45,8 @@ contract SpaceFactoryV1 is
         uint256 tokenId,
         uint256 spaceshipId
     );
+    event SetTokenBoundImplementation(address contractAddress);
+    event SetTokenBoundRegistry(address contractAddress);
     event SetSpaceshipUniverse1(address contractAddress);
     event SetBadgeUniverse1(address contractAddress);
     event SetIsUniverse1Whitelisted(bool isUniverse1Whitelisted);
@@ -80,6 +82,22 @@ contract SpaceFactoryV1 is
     }
 
     /* ============ Admin Functions ============ */
+
+    function setTokenBoundImplementation(
+        IERC6551Account contractAddress
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (address(contractAddress) == address(0)) revert InvalidAddress();
+        tokenBoundImplementation = contractAddress;
+        emit SetTokenBoundImplementation(address(contractAddress));
+    }
+
+    function setTokenBoundRegistry(
+        IERC6551Registry contractAddress
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (address(contractAddress) == address(0)) revert InvalidAddress();
+        tokenBoundRegistry = contractAddress;
+        emit SetTokenBoundRegistry(address(contractAddress));
+    }
 
     function setSpaceshipUniverse1(
         address contractAddress
