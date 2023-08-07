@@ -33,4 +33,14 @@ interface IBadgeUniverse1 {
         uint128 primaryType,
         uint128 secondaryType
     ) external returns (bool);
+
+    /// @dev Returns the balance of a specific token type that user has.
+    /// @param user The user's address.
+    /// @param primaryType The primary type of the token.
+    /// @param secondaryType The secondary type of the token.
+    function balanceOfTokenType(
+        address user,
+        uint128 primaryType,
+        uint128 secondaryType
+    ) external view returns (uint256);
 }
