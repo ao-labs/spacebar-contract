@@ -43,6 +43,8 @@ contract BadgeUniverse1Test is Test, Error {
         uint256 tokenId = 0;
         uint128 primaryType = 1;
         uint128 secondaryType = 2;
+        assertEq(badge.totalSupply(), 0);
+        assertEq(badge.nextTokenId(), 0);
 
         vm.expectRevert(OnlySpaceFactory.selector);
         badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
@@ -64,6 +66,7 @@ contract BadgeUniverse1Test is Test, Error {
         BadgeUniverse1.TokenType memory tokenType = badge.getTokenType(tokenId);
 
         assertEq(badge.ownerOf(tokenId), user1);
+        assertEq(badge.nextTokenId(), 1);
         assertEq(badge.totalSupply(), 1);
         assertEq(badge.balanceOf(user1), 1);
         assertEq(tokenType.primaryType, primaryType);
@@ -79,12 +82,16 @@ contract BadgeUniverse1Test is Test, Error {
         vm.prank(user1);
         badge.burnBadge(0);
         assertEq(badge.balanceOf(user1), 0);
+        assertEq(badge.totalSupply(), 0);
+        assertEq(badge.nextTokenId(), 1);
 
         vm.expectRevert("ERC721: invalid token ID");
         badge.ownerOf(0);
 
         vm.prank(factory);
         badge.mintBadge(user2, primaryType, secondaryType, tokenURI);
+        assertEq(badge.totalSupply(), 1);
+        assertEq(badge.nextTokenId(), 2);
 
         // only factory or token owner can burn
         vm.prank(user1);
@@ -94,6 +101,8 @@ contract BadgeUniverse1Test is Test, Error {
         vm.prank(factory);
         badge.burnBadge(1);
         assertEq(badge.balanceOf(user2), 0);
+        assertEq(badge.totalSupply(), 0);
+        assertEq(badge.nextTokenId(), 2);
 
         vm.expectRevert("ERC721: invalid token ID");
         badge.ownerOf(1);
@@ -114,5 +123,53 @@ contract BadgeUniverse1Test is Test, Error {
         badge.setApprovalForAll(user2, true);
         vm.expectRevert(CanNotTransfer.selector);
         badge.transferFrom(user1, user2, tokenId);
+    }
+
+    function testTokenType() public {
+        uint128 primaryType = 1;
+        uint128 secondaryType = 2;
+
+        assertFalse(
+            badge.isOwnerOfTokenType(user1, primaryType, secondaryType)
+        );
+        assertEq(
+            badge.balanceOfTokenType(user1, primaryType, secondaryType),
+            0
+        );
+
+        vm.startPrank(factory);
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
+        assertTrue(badge.isOwnerOfTokenType(user1, primaryType, secondaryType));
+        assertEq(
+            badge.balanceOfTokenType(user1, primaryType, secondaryType),
+            1
+        );
+
+        badge.mintBadge(user1, primaryType, secondaryType, tokenURI);
+        assertTrue(badge.isOwnerOfTokenType(user1, primaryType, secondaryType));
+        assertEq(
+            badge.balanceOfTokenType(user1, primaryType, secondaryType),
+            2
+        );
+
+        badge.burnBadge(1);
+        assertTrue(badge.isOwnerOfTokenType(user1, primaryType, secondaryType));
+        assertEq(
+            badge.balanceOfTokenType(user1, primaryType, secondaryType),
+            1
+        );
+        vm.expectRevert(InvalidTokenId.selector);
+        badge.getTokenType(1);
+
+        badge.burnBadge(0);
+        assertFalse(
+            badge.isOwnerOfTokenType(user1, primaryType, secondaryType)
+        );
+        assertEq(
+            badge.balanceOfTokenType(user1, primaryType, secondaryType),
+            0
+        );
+        vm.expectRevert(InvalidTokenId.selector);
+        badge.getTokenType(0);
     }
 }
