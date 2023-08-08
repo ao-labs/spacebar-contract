@@ -28,9 +28,9 @@ yarn test
 
 ### Goerli testnet
 
-SpaceFactoryV1Proxy : 0x78f3db4826864F8035DEfA327da3790fF2EDa2e3  
-SpaceshipUniverse1 : 0xEE887722f1D973C6800Bd63b4c234fB58c691d96  
-BadgeUniverse1: 0x7e00bC28b1966B1150a50481e518139cE18f4112  
+SpaceFactoryV1Proxy : 0xF636C4826a59F3C61A53b96Dd24AE9289c914F1E  
+SpaceshipUniverse1 : 0xF147fB32F8b778a52f1a34f5e1f760dB7b48aAe6  
+BadgeUniverse1: 0xcd40c4aBADa2DD10D03B6c228DA0EC7b7198E7b1  
 
 Deployed with the arguments below
 ```
