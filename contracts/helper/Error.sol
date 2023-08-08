@@ -10,6 +10,7 @@ contract Error {
     error OnlySpaceFactoryOrOwner();
     error InvalidTokenId();
     error InvalidTokenURI();
+    error InvalidAddress();
     error OnlyOneProtoshipAtATime();
     error OnlyNFTOwner();
     error InvalidProtoship();
