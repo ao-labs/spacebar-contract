@@ -2,18 +2,16 @@
 
 ## SpaceFactoryV1
 
-This contract is responsible for minting, upgrading, and burning assets for the Spacebar project.
-These assets currently include Spaceship NFTs from Universe1, but can be extended to support many more.
-This is because the contract utilizes the ERC1967 proxy + UUPSUpgradeable, enabling it to be
-upgraded in the future to support additional features and asset types.
+This contract is responsible for the minting, upgrading, and burning of assets for the Spacebar project.
+While currently supporting Spaceship NFTs from Universe1, it has the potential to support a wider variety of assets.
+Thanks to its use of the ERC1967 proxy and UUPSUpgradeable, this contract can be upgraded in the future
+to accommodate additional features and asset types.
 
 ### SERVICE_ADMIN_ROLE
 
 ```solidity
 bytes32 SERVICE_ADMIN_ROLE
 ```
-
-_The constant for the service admin role_
 
 ### MINTER_ROLE
 
@@ -135,34 +133,50 @@ function transferDefaultAdmin(address admin) external virtual
 function mintProtoshipUniverse1(address tokenContract, uint256 tokenId) external virtual returns (address)
 ```
 
-mints a Protoship to the TBA address of user's NFT, and deploys the TBA of spaceship
+Mints a Protoship to the TBA address associated with the user's NFT and deploys the TBA of the spaceship.
 
-_If the address already has TBA, it will use the existing TBA, and if the TBA
-already has a Protoship, it will revert(OnlyOneProtoshipAtATime)._
+_If the address already has a TBA, it will use the existing TBA. If the TBA already has a Protoship,
+it will revert with the error 'OnlyOneProtoshipAtATime'._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenContract | address | TBA's contract address |
-| tokenId | uint256 | TBA's token ID |
+| tokenContract | address | The contract address of the TBA. |
+| tokenId | uint256 | The token ID of the TBA. |
 
 ### mintWhitelistBadgeUniverse1
 
 ```solidity
-function mintWhitelistBadgeUniverse1(address tokenContract, uint256 tokenId, string tokenURI) external virtual
+function mintWhitelistBadgeUniverse1(address tokenContract, uint256 tokenId, string tokenURI) public virtual
 ```
 
-mints a whitelist badge(SBT) to the TBA address of user's NFT.
-During whitelist period, user must own the specific type of badge to mint a Protoship.
+Mints a whitelist badge (SBT) to the TBA address associated with the user's NFT.
+During the whitelist period, a user must own a specific type of badge to mint a Protoship.
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenContract | address | User NFT's contract address |
-| tokenId | uint256 | NFT's token ID |
-| tokenURI | string |  |
+| tokenContract | address | The contract address of the user's NFT. |
+| tokenId | uint256 | The token ID of the user's NFT. |
+| tokenURI | string | The token URI of the badge. |
+
+### batchMintWhitelistBadgeUniverse1
+
+```solidity
+function batchMintWhitelistBadgeUniverse1(address[] tokenContracts, uint256[] tokenIds, string[] tokenURIs) external virtual
+```
+
+Batch mints whitelist badges (SBT) to the TBA address associated with the user's NFT.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| tokenContracts | address[] | The list of contract addresses of the user's NFT. |
+| tokenIds | uint256[] | The list of token IDs of the user's NFT. |
+| tokenURIs | string[] | The list of token URIs of the badge. |
 
 ### burnProtoshipUniverse1
 
@@ -170,15 +184,15 @@ During whitelist period, user must own the specific type of badge to mint a Prot
 function burnProtoshipUniverse1(uint256 tokenId) external virtual
 ```
 
-Burns a Protoship from the address when it fails to meet requirements.
+Burns a Protoship from an address when it fails to meet the required conditions.
 
-_Only service admin can call this function. The function will revert if the token is not a Protoship._
+_Only a service admin can call this function. The function will revert if the specified token is not a Protoship._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | Token id to burn. |
+| tokenId | uint256 | The ID of the token to burn. |
 
 ### upgradeToOwnershipUniverse1
 
@@ -186,15 +200,15 @@ _Only service admin can call this function. The function will revert if the toke
 function upgradeToOwnershipUniverse1(uint256 tokenId) external virtual
 ```
 
-Upgrades Protoship to Ownership(aka. unlock).
+Upgrades a Protoship to Ownership status (unlock).
 
-_Only service admin can call this function. The function will revert if the token is not a Protoship._
+_Only a service admin can call this function. The function will revert if the specified token is not a Protoship._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | Token id to upgrade |
+| tokenId | uint256 | The ID of the token to upgrade. |
 
 ### getSpaceshipUniverse1TBA
 

@@ -193,11 +193,12 @@ contract SpaceFactoryV1 is
     /// During the whitelist period, a user must own a specific type of badge to mint a Protoship.
     /// @param tokenContract The contract address of the user's NFT.
     /// @param tokenId The token ID of the user's NFT.
+    /// @param tokenURI The token URI of the badge.
     function mintWhitelistBadgeUniverse1(
         address tokenContract,
         uint256 tokenId,
         string memory tokenURI
-    ) external virtual onlyRole(MINTER_ROLE) {
+    ) public virtual onlyRole(MINTER_ROLE) {
         address profileTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
             block.chainid,
@@ -212,6 +213,33 @@ contract SpaceFactoryV1 is
             universe1WhitelistBadgeType.secondaryType,
             tokenURI
         );
+    }
+
+    /// @notice Batch mints whitelist badges (SBT).
+    /// @param tokenContracts The list of NFT contract addresses.
+    /// @param tokenIds The list of token IDs.
+    /// @param tokenURIs The list of token URIs.
+    function batchMintWhitelistBadgeUniverse1(
+        address[] memory tokenContracts,
+        uint256[] memory tokenIds,
+        string[] memory tokenURIs
+    ) external virtual onlyRole(MINTER_ROLE) {
+        if (
+            tokenContracts.length != tokenIds.length ||
+            tokenContracts.length != tokenURIs.length
+        ) {
+            revert InvalidListLength();
+        }
+        for (uint256 i = 0; i < tokenContracts.length; ) {
+            mintWhitelistBadgeUniverse1(
+                tokenContracts[i],
+                tokenIds[i],
+                tokenURIs[i]
+            );
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /// @notice Burns a Protoship from an address when it fails to meet the required conditions.

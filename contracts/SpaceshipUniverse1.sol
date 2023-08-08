@@ -77,14 +77,12 @@ contract SpaceshipUniverse1 is
     uint256 public nextTokenId;
     address public spaceFactory;
 
-    bytes32 public constant SPACE_FACTORY = keccak256("SPACE_FACTORY"); //space factory contract
-
     // @dev mapping from token ID to whether it is fully owned Ownership
     mapping(uint256 => bool) public unlocked;
 
     // Optional token URIs for decentralized storage
     mapping(uint256 => string) private _decentralizedTokenURIs;
-    string decentralizedTokenURIBase = "https://www.arweave.net/";
+    string decentralizedTokenURIBase = "ipfs://";
 
     /* ============ Modifiers ============ */
 
@@ -222,7 +220,8 @@ contract SpaceshipUniverse1 is
 
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
-        return "https://api.spacebar.xyz/metadata/spaceship_universe1/";
+        return
+            "https://cdn.dev.internal-spacebar.xyz/metadata/spaceship_universe1/";
     }
 
     /* ============ View Functions ============ */

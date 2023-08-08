@@ -11,6 +11,7 @@ contract Error {
     error InvalidTokenId();
     error InvalidTokenURI();
     error InvalidAddress();
+    error InvalidListLength();
     error OnlyOneProtoshipAtATime();
     error OnlyNFTOwner();
     error InvalidProtoship();

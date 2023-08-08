@@ -2,15 +2,13 @@
 
 ## BadgeUniverse1
 
-_Souldbound Tokens(SBT) are non-transferable tokens._
+_Soulbound Tokens (SBT) are non-transferable tokens._
 
 ### totalSupply
 
 ```solidity
 uint256 totalSupply
 ```
-
-_The total supply of tokens_
 
 ### spaceFactory
 
@@ -42,15 +40,15 @@ constructor(address _spaceFactory, address defaultAdmin) public
 function mintBadge(address to, uint128 primaryType, uint128 secondaryType, string tokenURI) public
 ```
 
-Mints a new badge
+Mints a new badge.
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| to | address | The address to mint the badge to |
-| primaryType | uint128 | The primary type of the badge |
-| secondaryType | uint128 | The secondary type of the badge |
+| to | address | The address to which the badge will be minted. |
+| primaryType | uint128 | The primary type of the badge. |
+| secondaryType | uint128 | The secondary type of the badge. |
 | tokenURI | string |  |
 
 ### burnBadge
@@ -81,13 +79,13 @@ _This function is not implemented._
 function getTokenType(uint256 tokenId) external view returns (struct IBadgeUniverse1.TokenType)
 ```
 
-_Returns the type of the badge (primary type, secondary type)_
+_Returns the type of the badge (primary type, secondary type)._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenId | uint256 | The ID of the token |
+| tokenId | uint256 | The ID of the token. |
 
 ### isOwnerOfTokenType
 
@@ -95,15 +93,15 @@ _Returns the type of the badge (primary type, secondary type)_
 function isOwnerOfTokenType(address user, uint128 primaryType, uint128 secondaryType) external view returns (bool)
 ```
 
-_Returns whether the user owns a specific token type_
+_Determines whether the user owns a specific token type._
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| user | address | user address |
-| primaryType | uint128 | Primary type of token |
-| secondaryType | uint128 | Secondary type of token |
+| user | address | The user's address. |
+| primaryType | uint128 | The primary type of the token. |
+| secondaryType | uint128 | The secondary type of the token. |
 
 ### _setTokenURI
 

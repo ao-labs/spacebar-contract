@@ -161,6 +161,6 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
 
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
-        return "https://www.arweave.net/";
+        return "ipfs://";
     }
 }
