@@ -13,9 +13,10 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     /* ============ Variables ============ */
 
     uint256 public totalSupply;
+    uint256 public nextTokenId;
     address public immutable spaceFactory;
     mapping(uint256 => TokenType) private _tokenTypes;
-    mapping(bytes32 => bool) private _isOwnerOfTokenType;
+    mapping(bytes32 => uint256) private _balanceOfTokenType;
 
     /* ============ Events ============ */
 
@@ -58,15 +59,16 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
         if (bytes(tokenURI).length == 0) {
             revert InvalidTokenURI();
         }
-        _mint(to, totalSupply);
-        _setTokenURI(totalSupply, tokenURI);
-        _tokenTypes[totalSupply] = TokenType(primaryType, secondaryType);
-        _isOwnerOfTokenType[
-            keccak256(abi.encodePacked(to, primaryType, secondaryType))
-        ] = true;
-        emit MintBadge(to, primaryType, secondaryType, totalSupply, tokenURI);
+        _mint(to, nextTokenId);
+        _setTokenURI(nextTokenId, tokenURI);
+        _tokenTypes[nextTokenId] = TokenType(primaryType, secondaryType);
+        emit MintBadge(to, primaryType, secondaryType, nextTokenId, tokenURI);
         unchecked {
+            ++_balanceOfTokenType[
+                keccak256(abi.encodePacked(to, primaryType, secondaryType))
+            ];
             ++totalSupply;
+            ++nextTokenId;
         }
     }
 
@@ -74,6 +76,20 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
         if (msg.sender != spaceFactory && msg.sender != ownerOf(tokenId)) {
             revert OnlySpaceFactoryOrOwner();
         }
+        TokenType memory tokenType = _tokenTypes[tokenId];
+        unchecked {
+            --_balanceOfTokenType[
+                keccak256(
+                    abi.encodePacked(
+                        ownerOf(tokenId),
+                        tokenType.primaryType,
+                        tokenType.secondaryType
+                    )
+                )
+            ];
+            --totalSupply;
+        }
+        delete _tokenTypes[tokenId];
         _burn(tokenId);
     }
 
@@ -104,7 +120,19 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
         uint128 secondaryType
     ) external view override returns (bool) {
         return
-            _isOwnerOfTokenType[
+            _balanceOfTokenType[
+                keccak256(abi.encodePacked(user, primaryType, secondaryType))
+            ] > 0;
+    }
+
+    /// @inheritdoc IBadgeUniverse1
+    function balanceOfTokenType(
+        address user,
+        uint128 primaryType,
+        uint128 secondaryType
+    ) external view returns (uint256) {
+        return
+            _balanceOfTokenType[
                 keccak256(abi.encodePacked(user, primaryType, secondaryType))
             ];
     }
