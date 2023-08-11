@@ -128,7 +128,7 @@ contract SpaceshipUniverse1Test is Test, Error {
         spaceship.mint(users[0]);
         assertEq(
             spaceship.tokenURI(0),
-            "https://cdn.dev.internal-spacebar.xyz/metadata/spaceship_universe1/0"
+            "https://cdn.stage.internal-spacebar.xyz/metadata/spacebar_universe1/0"
         );
 
         spaceship.setDecentralizedTokenURI(0, "random");

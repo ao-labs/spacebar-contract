@@ -42,7 +42,8 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     constructor(
         address _spaceFactory,
         address defaultAdmin
-    ) ERC721("Badge Universe1", "BADGE-U1") {
+    ) ERC721("Boracay - Universe 1", "BADGE") {
+        //@TODO change name to Badge after stg test
         spaceFactory = _spaceFactory;
         transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
     }

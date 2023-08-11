@@ -100,7 +100,8 @@ contract SpaceshipUniverse1 is
         uint16 maxSpaceshipUniverse1CirculatingSupply,
         address defaultAdmin,
         address royaltyReceiver
-    ) ERC721("Spaceship Universe1", "SPACESHIP-U1") {
+    ) ERC721("Songhwa - Universe 1", "SPACEBAR") {
+        //@TODO change back to Spacebar
         spaceFactory = _spaceFactory;
         transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
         _setDefaultRoyalty(royaltyReceiver, 500); // set default royalty to 5%
@@ -221,7 +222,7 @@ contract SpaceshipUniverse1 is
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
         return
-            "https://cdn.dev.internal-spacebar.xyz/metadata/spaceship_universe1/";
+            "https://cdn.stage.internal-spacebar.xyz/metadata/spacebar_universe1/";
     }
 
     /* ============ View Functions ============ */
