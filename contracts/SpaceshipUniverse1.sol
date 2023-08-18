@@ -221,8 +221,7 @@ contract SpaceshipUniverse1 is
 
     // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
-        return
-            "https://cdn.stage.internal-spacebar.xyz/metadata/spacebar_universe1/";
+        return "https://cdn.spacebar.xyz/metadata/spacebar_universe1/";
     }
 
     /* ============ View Functions ============ */
