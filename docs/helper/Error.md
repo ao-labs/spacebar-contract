@@ -40,6 +40,12 @@ error InvalidTokenId()
 error InvalidTokenURI()
 ```
 
+### InvalidAddress
+
+```solidity
+error InvalidAddress()
+```
+
 ### InvalidListLength
 
 ```solidity

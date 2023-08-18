@@ -38,12 +38,6 @@ _Returns the ID of the next token to be minted._
 address spaceFactory
 ```
 
-### SPACE_FACTORY
-
-```solidity
-bytes32 SPACE_FACTORY
-```
-
 ### unlocked
 
 ```solidity
