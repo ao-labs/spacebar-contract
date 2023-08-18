@@ -54,11 +54,10 @@ contract SpaceFactoryV1 is
 
     /* ============ Constructor ============ */
 
-    // @TODO uncomment this when we are ready to deploy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    // constructor() {
-    //     _disableInitializers();
-    // }
+    constructor() {
+        _disableInitializers();
+    }
 
     function initialize(
         address defaultAdmin,

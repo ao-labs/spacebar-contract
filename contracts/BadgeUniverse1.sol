@@ -42,8 +42,7 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
     constructor(
         address _spaceFactory,
         address defaultAdmin
-    ) ERC721("Boracay - Universe 1", "BADGE") {
-        //@TODO change name to Badge after stg test
+    ) ERC721("Badge - Universe 1", "BADGE") {
         spaceFactory = _spaceFactory;
         transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
     }
@@ -160,7 +159,6 @@ contract BadgeUniverse1 is ERC721URIStorage, IBadgeUniverse1, Ownable, Error {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    // @TODO URI may change in the future
     function _baseURI() internal pure override returns (string memory) {
         return "ipfs://";
     }
