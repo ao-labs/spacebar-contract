@@ -67,6 +67,18 @@ mapping(address => bool) hasProtoship
 event MintProtoshipUniverse1(address tokenContract, uint256 tokenId, uint256 spaceshipId)
 ```
 
+### SetTokenBoundImplementation
+
+```solidity
+event SetTokenBoundImplementation(address contractAddress)
+```
+
+### SetTokenBoundRegistry
+
+```solidity
+event SetTokenBoundRegistry(address contractAddress)
+```
+
 ### SetSpaceshipUniverse1
 
 ```solidity
@@ -95,6 +107,18 @@ event SetUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType badgeType)
 
 ```solidity
 function initialize(address defaultAdmin, address serviceAdmin, address minterAdmin, contract IERC6551Registry _tokenBoundRegistry, contract IERC6551Account _tokenBoundImplementation, bool _isUniverse1Whitelisted, struct IBadgeUniverse1.TokenType _universe1WhitelistBadgeType) public
+```
+
+### setTokenBoundImplementation
+
+```solidity
+function setTokenBoundImplementation(contract IERC6551Account contractAddress) external virtual
+```
+
+### setTokenBoundRegistry
+
+```solidity
+function setTokenBoundRegistry(contract IERC6551Registry contractAddress) external virtual
 ```
 
 ### setSpaceshipUniverse1
@@ -168,15 +192,15 @@ During the whitelist period, a user must own a specific type of badge to mint a 
 function batchMintWhitelistBadgeUniverse1(address[] tokenContracts, uint256[] tokenIds, string[] tokenURIs) external virtual
 ```
 
-Batch mints whitelist badges (SBT) to the TBA address associated with the user's NFT.
+Batch mints whitelist badges (SBT).
 
 #### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tokenContracts | address[] | The list of contract addresses of the user's NFT. |
-| tokenIds | uint256[] | The list of token IDs of the user's NFT. |
-| tokenURIs | string[] | The list of token URIs of the badge. |
+| tokenContracts | address[] | The list of NFT contract addresses. |
+| tokenIds | uint256[] | The list of token IDs. |
+| tokenURIs | string[] | The list of token URIs. |
 
 ### burnProtoshipUniverse1
 

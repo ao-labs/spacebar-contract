@@ -10,6 +10,12 @@ _Soulbound Tokens (SBT) are non-transferable tokens._
 uint256 totalSupply
 ```
 
+### nextTokenId
+
+```solidity
+uint256 nextTokenId
+```
+
 ### spaceFactory
 
 ```solidity
@@ -94,6 +100,22 @@ function isOwnerOfTokenType(address user, uint128 primaryType, uint128 secondary
 ```
 
 _Determines whether the user owns a specific token type._
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| user | address | The user's address. |
+| primaryType | uint128 | The primary type of the token. |
+| secondaryType | uint128 | The secondary type of the token. |
+
+### balanceOfTokenType
+
+```solidity
+function balanceOfTokenType(address user, uint128 primaryType, uint128 secondaryType) external view returns (uint256)
+```
+
+_Returns the balance of a specific token type that user has._
 
 #### Parameters
 
