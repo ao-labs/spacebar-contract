@@ -1,0 +1,236 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x11968381af76943b4B0F96f6BA7d1E42c1356c7E",
+      "txHash": "0x2749a4a63d137769f2314d4435c5d8c72d622cf87c30199d9c705ad564163b85",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "4bbb63d73717bfe88f14871ff25d8e7158197e192842ebedfb8ee3e24b126164": {
+      "address": "0x7000457A51EcCACF241aD9286903Ac46498BD01D",
+      "txHash": "0x4ba937c19ecc6f15d11f79a83546906422ea1b9e82ba8d07d248f7efd5823c96",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:62"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "tokenBoundImplementation",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_contract(IERC6551Account)27582",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:32"
+          },
+          {
+            "label": "tokenBoundRegistry",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_contract(IERC6551Registry)27631",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:33"
+          },
+          {
+            "label": "spaceshipUniverse1",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_contract(ISpaceshipUniverse1)27684",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:34"
+          },
+          {
+            "label": "badgeUniverse1",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_contract(IBadgeUniverse1)27494",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:35"
+          },
+          {
+            "label": "isUniverse1Whitelisted",
+            "offset": 20,
+            "slot": "254",
+            "type": "t_bool",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:36"
+          },
+          {
+            "label": "universe1WhitelistBadgeType",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_struct(TokenType)27448_storage",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:37"
+          },
+          {
+            "label": "hasProtoship",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "SpaceFactoryV1",
+            "src": "contracts/SpaceFactoryV1.sol:39"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IBadgeUniverse1)27494": {
+            "label": "contract IBadgeUniverse1",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC6551Account)27582": {
+            "label": "contract IERC6551Account",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC6551Registry)27631": {
+            "label": "contract IERC6551Registry",
+            "numberOfBytes": "20"
+          },
+          "t_contract(ISpaceshipUniverse1)27684": {
+            "label": "contract ISpaceshipUniverse1",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(TokenType)27448_storage": {
+            "label": "struct IBadgeUniverse1.TokenType",
+            "members": [
+              {
+                "label": "primaryType",
+                "type": "t_uint128",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "secondaryType",
+                "type": "t_uint128",
+                "offset": 16,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint128": {
+            "label": "uint128",
+            "numberOfBytes": "16"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
