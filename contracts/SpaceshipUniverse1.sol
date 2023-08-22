@@ -100,7 +100,7 @@ contract SpaceshipUniverse1 is
         uint16 maxSpaceshipUniverse1CirculatingSupply,
         address defaultAdmin,
         address royaltyReceiver
-    ) ERC721("Spacebar - Universe 1", "SPACEBAR") {
+    ) ERC721("Spacebar - Universe 1", "SPACEBAR1") {
         spaceFactory = _spaceFactory;
         transferOwnership(defaultAdmin); // this is for OpenSea's collection admin
         _setDefaultRoyalty(royaltyReceiver, 500); // set default royalty to 5%
