@@ -11,6 +11,7 @@ import "../contracts/BadgeUniverse1.sol";
 import "./mocks/MockERC721.sol";
 import "../contracts/interfaces/IERC6551Account.sol";
 import "../contracts/helper/Error.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract SpaceFactoryV1Test is Test, Error {
     bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -18,6 +19,7 @@ contract SpaceFactoryV1Test is Test, Error {
     ERC6551Account public erc6551Account;
     IERC6551Account public implementation;
     SpaceFactoryV1 public factory;
+    SpaceFactoryV1 public factoryImplemenation;
     SpaceshipUniverse1 public spaceship;
     BadgeUniverse1 public badge;
     MockERC721 public externalERC721;
@@ -44,15 +46,23 @@ contract SpaceFactoryV1Test is Test, Error {
         implementation = IERC6551Account(
             payable(address(new AccountProxy(address(erc6551Account))))
         );
-        factory = new SpaceFactoryV1();
-        factory.initialize(
-            defaultAdmin,
-            serviceAdmin,
-            minterAdmin,
-            registry,
-            implementation,
-            false,
-            IBadgeUniverse1.TokenType(0, 0)
+        factoryImplemenation = new SpaceFactoryV1();
+        factory = SpaceFactoryV1(
+            address(
+                new ERC1967Proxy(
+                    address(factoryImplemenation),
+                    abi.encodeWithSignature(
+                        "initialize(address,address,address,address,address,bool,(uint128,uint128))",
+                        defaultAdmin,
+                        serviceAdmin,
+                        minterAdmin,
+                        registry,
+                        implementation,
+                        false,
+                        IBadgeUniverse1.TokenType(0, 0)
+                    )
+                )
+            )
         );
         spaceship = new SpaceshipUniverse1(
             address(factory),
