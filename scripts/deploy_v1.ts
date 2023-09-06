@@ -14,6 +14,12 @@ async function main() {
 
 	const [deployer] = await ethers.getSigners()
 
+	if (deployer.address == process.env.DEFAULT_ADMIN_ADDRESS) {
+		throw Error(
+			"Deployer address should not be the same as default admin address"
+		)
+	}
+
 	const spaceFactoryV1 = (await upgrades.deployProxy(
 		SpaceFactoryV1,
 		[
