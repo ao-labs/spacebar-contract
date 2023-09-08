@@ -1,6 +1,6 @@
 {
 	"name": "spacebar-contract",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Spacebar's smart contracts",
 	"scripts": {
 		"clean": "rm -rf ./artifacts ./cache ./coverage ./typechain-types ./coverage.json",
