@@ -80,25 +80,6 @@ contract WhitelistBadgeClaimerTest is Test {
         vm.stopPrank();
     }
 
-    function testAddressToString() public {
-        address acoount = 0x48715b9451C3FE79D176A86AE227714ce85a7072;
-        assertEq(
-            whitelistBadgeClaimer.addressToString(acoount),
-            "0x48715b9451c3fe79d176a86ae227714ce85a7072"
-        );
-    }
-
-    function testGetSigner() public {
-        address eoa = vm.addr(1000);
-        uint256 pk = 1001;
-        bytes memory signature = makeSignature(pk, eoa);
-        address signer = whitelistBadgeClaimer.getSigner(
-            whitelistBadgeClaimer.addressToString(eoa),
-            signature
-        );
-        assertEq(signer, vm.addr(pk));
-    }
-
     function testClaimBadge() public {
         uint256 tokenId = 0;
         externalERC721.mint(userA, tokenId);
@@ -262,12 +243,18 @@ contract WhitelistBadgeClaimerTest is Test {
 
     function makeSignature(
         uint256 pk,
-        address eoa
+        address account
     ) public view returns (bytes memory) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             pk,
-            ECDSA.toEthSignedMessageHash(
-                bytes(whitelistBadgeClaimer.addressToString(eoa))
+            ECDSA.toTypedDataHash(
+                whitelistBadgeClaimer.DOMAIN_SEPARATOR(),
+                keccak256(
+                    abi.encode(
+                        whitelistBadgeClaimer.CLAIMER_TYPEHASH(),
+                        account
+                    )
+                )
             )
         );
         return abi.encodePacked(r, s, v);

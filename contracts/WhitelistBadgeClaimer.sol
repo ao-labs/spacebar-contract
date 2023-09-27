@@ -6,18 +6,22 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/ISpaceFactoryV1.sol";
 import "./helper/Error.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 
 /// @title WhitelistBadgeClaimer
 /// @dev This contract allows whitelisted accounts to claim a whitelist badge (SBT)
 /// to the TBA address associated with the user's NFT.
 /// Since the whitelist is managed by the server, server-side signature is required to claim the badge.
-contract WhitelistBadgeClaimer is Ownable {
+contract WhitelistBadgeClaimer is Ownable, EIP712 {
     /* ============ Variables ============ */
     ISpaceFactoryV1 public spaceFactory;
     address public serviceAdmin;
     string public tokenURI;
     uint256 public maxNumberOfClaims = 1;
     mapping(address => uint256) public numberOfClaims;
+
+    bytes32 public constant CLAIMER_TYPEHASH =
+        keccak256("Claimer(address account)");
 
     /* ============ Events ============ */
 
@@ -32,7 +36,7 @@ contract WhitelistBadgeClaimer is Ownable {
         address _owner,
         address _serviceAdmin,
         string memory _tokenURI
-    ) {
+    ) EIP712("Spacebar", "1") {
         spaceFactory = _spaceFactory;
         serviceAdmin = _serviceAdmin;
         tokenURI = _tokenURI;
@@ -82,14 +86,14 @@ contract WhitelistBadgeClaimer is Ownable {
         );
         // check whether the service admin has signed to the EOA string of the sender
         require(
-            getSigner(addressToString(msg.sender), signature) == serviceAdmin,
+            getSigner((msg.sender), signature) == serviceAdmin,
             "WhitelistBadgeClaimer: signer is not serviceAdmin"
         );
+
         require(
             numberOfClaims[msg.sender] < maxNumberOfClaims,
             "WhitelistBadgeClaimer: exceeds maxNumberOfClaims"
         );
-
         numberOfClaims[msg.sender] += 1;
 
         spaceFactory.mintWhitelistBadgeUniverse1(
@@ -99,36 +103,20 @@ contract WhitelistBadgeClaimer is Ownable {
         );
     }
 
-    /* ============ Helper Functions ============ */
+    /* ============ EIP712 Functions ============ */
 
-    ///@dev Returns the signer of the signature
-    ///@param message The message signed to produce the signature
-    ///@param signature Signature in bytes
-    function getSigner(
-        string memory message,
-        bytes memory signature
-    ) public pure returns (address) {
-        (address signer, ) = ECDSA.tryRecover(
-            ECDSA.toEthSignedMessageHash(bytes(message)),
-            signature
-        );
-        return signer;
+    function DOMAIN_SEPARATOR() external view virtual returns (bytes32) {
+        return _domainSeparatorV4();
     }
 
-    ///@dev Returns the string representation of an address
-    ///@param _address The address to convert to string
-    function addressToString(
-        address _address
-    ) public pure returns (string memory) {
-        bytes32 _bytes = bytes32(uint256(uint160(_address)));
-        bytes memory HEX = "0123456789abcdef";
-        bytes memory _string = new bytes(42);
-        _string[0] = "0";
-        _string[1] = "x";
-        for (uint i = 0; i < 20; i++) {
-            _string[2 + i * 2] = HEX[uint8(_bytes[i + 12] >> 4)];
-            _string[3 + i * 2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
-        }
-        return string(_string);
+    ///@dev Returns the signer of the signature
+    ///@param account The claimer account
+    ///@param signature Signature in bytes
+    function getSigner(
+        address account,
+        bytes memory signature
+    ) public view returns (address) {
+        bytes32 structHash = keccak256(abi.encode(CLAIMER_TYPEHASH, account));
+        return ECDSA.recover(_hashTypedDataV4(structHash), signature);
     }
 }
