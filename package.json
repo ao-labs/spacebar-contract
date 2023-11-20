@@ -1,6 +1,6 @@
 {
 	"name": "spacebar-contract",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Spacebar's smart contracts",
 	"scripts": {
 		"clean": "rm -rf ./artifacts ./cache ./coverage ./typechain-types ./coverage.json",
@@ -10,6 +10,8 @@
 		"test:report-gas": "forge test -vvv --gas-report",
 		"deploy:mainnet": "npx hardhat run scripts/deploy_v1.ts --network mainnet",
 		"deploy:goerli": "npx hardhat run scripts/deploy_v1.ts --network goerli",
+		"deploy-claimer:mainnet": "npx hardhat run scripts/deploy_badge_claimer.ts --network mainnet",
+		"deploy-claimer:goerli": "npx hardhat run scripts/deploy_badge_claimer.ts --network goerli",
 		"upgrade:goerli": "npx hardhat run scripts/upgrade_v2.ts --network goerli",
 		"hashes": "solc --hashes --include-path node_modules/ --base-path . contracts/helper/Error.sol"
 	},
