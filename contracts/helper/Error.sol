@@ -20,4 +20,12 @@ contract Error {
     error TokenLocked();
     error OnlyLockedToken();
     error ReachedMaxSupply();
+    error OnlyExistingToken();
+    error TokenAlreadyMinted();
+    error RefundNotEnabled();
+    error OnlySpaceshipOwner();
+    error ExceedMaxContributionPerMint();
+    error ExceedMaxContributionPerUser();
+    error ExceedMaxTotalContribution();
+    error InvalidSignature();
 }
