@@ -1,97 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
-import "../contracts/ERC6551/ERC6551Registry.sol";
-import "../contracts/ERC6551/ERC6551Account.sol";
-import "../contracts/ERC6551/AccountProxy.sol";
-import "../contracts/SpaceshipUniverse1.sol";
-import "../contracts/SpaceFactoryV1.sol";
-import "../contracts/BadgeUniverse1.sol";
-import "./mocks/MockERC721.sol";
-import "../contracts/interfaces/IERC6551Account.sol";
+import "./helper/DefaultSetup.sol";
 import "../contracts/helper/Error.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract SpaceFactoryV1Test is Test, Error {
-    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
-    ERC6551Registry public registry;
-    ERC6551Account public erc6551Account;
-    IERC6551Account public implementation;
-    SpaceFactoryV1 public factory;
-    SpaceFactoryV1 public factoryImplemenation;
-    SpaceshipUniverse1 public spaceship;
-    BadgeUniverse1 public badge;
-    MockERC721 public externalERC721;
-
-    address defaultAdmin;
-    address serviceAdmin;
-    address minterAdmin;
-    address[] users;
-    uint16 maxSupply = 10;
-
-    function setUp() public {
-        defaultAdmin = vm.addr(1);
-        serviceAdmin = vm.addr(2);
-        minterAdmin = vm.addr(3);
-        externalERC721 = new MockERC721();
+contract SpaceFactoryV1Test is DefaultSetup, Error {
+    function setUp() public override {
+        super.setUp();
         for (uint256 i = 0; i < maxSupply + 1; i++) {
-            users.push(vm.addr(i + 4));
             externalERC721.mint(users[i], i);
         }
-
-        registry = new ERC6551Registry();
-        erc6551Account = new ERC6551Account();
-        // implementation is also a proxy to ERC6551Account
-        implementation = IERC6551Account(
-            payable(address(new AccountProxy(address(erc6551Account))))
-        );
-        factoryImplemenation = new SpaceFactoryV1();
-        factory = SpaceFactoryV1(
-            address(
-                new ERC1967Proxy(
-                    address(factoryImplemenation),
-                    abi.encodeWithSignature(
-                        "initialize(address,address,address,address,address,bool,(uint128,uint128))",
-                        defaultAdmin,
-                        serviceAdmin,
-                        minterAdmin,
-                        registry,
-                        implementation,
-                        false,
-                        IBadgeUniverse1.TokenType(0, 0)
-                    )
-                )
-            )
-        );
-        spaceship = new SpaceshipUniverse1(
-            address(factory),
-            maxSupply,
-            defaultAdmin,
-            defaultAdmin
-        );
-        badge = new BadgeUniverse1(address(factory), defaultAdmin);
-        vm.startPrank(defaultAdmin);
-        factory.setSpaceshipUniverse1(address(spaceship));
-        factory.setBadgeUniverse1(address(badge));
-        vm.stopPrank();
     }
 
     function testMintProtoshipUniverse1() public {
-        address user1ProfileTBA = registry.account(
-            address(implementation),
-            block.chainid,
-            address(externalERC721),
-            0, // token id
-            0 // salt
-        );
-        address user1SpaceshipTBA = registry.account(
-            address(implementation),
-            block.chainid,
-            address(spaceship),
-            0, // token id
-            0 // salt
-        );
+        address user1ProfileTBA = getTBAaddress(address(externalERC721), 0);
+        address user1SpaceshipTBA = getTBAaddress(address(spaceship), 0);
+
         assertEq(user1SpaceshipTBA.code.length, 0);
         vm.prank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
@@ -106,13 +30,8 @@ contract SpaceFactoryV1Test is Test, Error {
         assertEq(tokenId, 0);
         assertEq(spaceship.ownerOf(tokenId), user1ProfileTBA);
 
-        address user2SpaceshipTBA = registry.account(
-            address(implementation),
-            block.chainid,
-            address(spaceship),
-            1, // token id
-            0 // salt
-        );
+        address user2SpaceshipTBA = getTBAaddress(address(spaceship), 1);
+
         vm.prank(users[1]);
         address user2ProfileTBA = factory.mintProtoshipUniverse1(
             address(externalERC721),
@@ -130,21 +49,14 @@ contract SpaceFactoryV1Test is Test, Error {
     }
 
     function testMintProtoshipWhenTBAIsAlreadyDeployed() public {
-        address user1ProfileTBA = registry.account(
-            address(implementation),
-            block.chainid,
+        uint256 _tokenId = 0;
+        address user1ProfileTBA = getTBAaddress(
             address(externalERC721),
-            0, // token id
-            0 // salt
+            _tokenId
         );
-        address user1SpaceshipTBA = registry.createAccount(
-            address(implementation),
-            block.chainid,
-            address(spaceship),
-            0,
-            0,
-            abi.encodeWithSignature("initialize()")
-        );
+
+        address user1SpaceshipTBA = deployTBA(address(spaceship), _tokenId);
+
         assertGt(user1SpaceshipTBA.code.length, 0);
         vm.startPrank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
@@ -155,7 +67,7 @@ contract SpaceFactoryV1Test is Test, Error {
         ) = ERC6551Account(payable(user1SpaceshipTBA)).token();
         assertEq(chainId, block.chainid);
         assertEq(tokenContract, address(spaceship));
-        assertEq(tokenId, 0);
+        assertEq(tokenId, _tokenId);
         assertEq(spaceship.ownerOf(tokenId), user1ProfileTBA);
     }
 
@@ -261,13 +173,8 @@ contract SpaceFactoryV1Test is Test, Error {
         vm.prank(minterAdmin);
         factory.mintWhitelistBadgeUniverse1(address(externalERC721), 0, uri);
 
-        address user1ProfileTBA = registry.account(
-            address(implementation),
-            block.chainid,
-            address(externalERC721),
-            0, // token id
-            0 // salt
-        );
+        address user1ProfileTBA = getTBAaddress(address(externalERC721), 0);
+
         assertEq(badge.ownerOf(0), user1ProfileTBA);
         vm.prank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
