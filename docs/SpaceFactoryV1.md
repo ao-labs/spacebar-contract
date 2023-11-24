@@ -103,6 +103,12 @@ event SetIsUniverse1Whitelisted(bool isUniverse1Whitelisted)
 event SetUniverse1WhitelistBadgeType(struct IBadgeUniverse1.TokenType badgeType)
 ```
 
+### constructor
+
+```solidity
+constructor() public
+```
+
 ### initialize
 
 ```solidity

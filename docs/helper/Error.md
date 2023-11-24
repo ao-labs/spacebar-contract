@@ -100,3 +100,51 @@ error OnlyLockedToken()
 error ReachedMaxSupply()
 ```
 
+### OnlyExistingToken
+
+```solidity
+error OnlyExistingToken()
+```
+
+### TokenAlreadyMinted
+
+```solidity
+error TokenAlreadyMinted()
+```
+
+### RefundNotEnabled
+
+```solidity
+error RefundNotEnabled()
+```
+
+### OnlySpaceshipOwner
+
+```solidity
+error OnlySpaceshipOwner()
+```
+
+### ExceedMaxContributionPerMint
+
+```solidity
+error ExceedMaxContributionPerMint()
+```
+
+### ExceedMaxContributionPerUser
+
+```solidity
+error ExceedMaxContributionPerUser()
+```
+
+### ExceedMaxTotalContribution
+
+```solidity
+error ExceedMaxTotalContribution()
+```
+
+### InvalidSignature
+
+```solidity
+error InvalidSignature()
+```
+

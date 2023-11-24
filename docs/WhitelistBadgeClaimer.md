@@ -3,7 +3,8 @@
 ## WhitelistBadgeClaimer
 
 _This contract allows whitelisted accounts to claim a whitelist badge (SBT)
-to the TBA address associated with the user's NFT._
+to the TBA address associated with the user's NFT.
+Since the whitelist is managed by the server, server-side signature is required to claim the badge._
 
 ### spaceFactory
 
@@ -33,6 +34,12 @@ uint256 maxNumberOfClaims
 
 ```solidity
 mapping(address => uint256) numberOfClaims
+```
+
+### CLAIMER_TYPEHASH
+
+```solidity
+bytes32 CLAIMER_TYPEHASH
 ```
 
 ### SetMaxNumberOfClaims
@@ -101,10 +108,16 @@ if that address is whitelisted.
 | tokenContract | address | The contract address of the user's NFT. |
 | tokenId | uint256 | The token ID of the user's NFT. |
 
+### DOMAIN_SEPARATOR
+
+```solidity
+function DOMAIN_SEPARATOR() external view virtual returns (bytes32)
+```
+
 ### getSigner
 
 ```solidity
-function getSigner(string message, bytes signature) public pure returns (address)
+function getSigner(address account, bytes signature) public view returns (address)
 ```
 
 _Returns the signer of the signature_
@@ -113,20 +126,6 @@ _Returns the signer of the signature_
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| message | string | The message signed to produce the signature |
+| account | address | The claimer account |
 | signature | bytes | Signature in bytes |
-
-### addressToString
-
-```solidity
-function addressToString(address _address) public pure returns (string)
-```
-
-_Returns the string representation of an address_
-
-#### Parameters
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| _address | address | The address to convert to string |
 
