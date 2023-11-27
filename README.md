@@ -66,24 +66,32 @@ MAX_SPACESHIP_UNIVERSE1_CIRCULATING_SUPPLY=1024
 
 For developers looking to troubleshoot, here's a list of error signatures:
 
-| Signature  | Description                |
-|------------|----------------------------|
-| `2d42c772` | AddressAlreadyRegistered() |
-| `a6c022e1` | CanNotApprove()            |
-| `1b5722f5` | CanNotTransfer()           |
-| `ad67865d` | InvalidListLength()        |
-| `3d7555a9` | InvalidProtoship()         |
-| `3f6cc768` | InvalidTokenId()           |
-| `13f04adb` | InvalidTokenURI()          |
-| `6a9a57a5` | NotWhiteListed()           |
-| `de20ed63` | OnlyLockedToken()          |
-| `d48af246` | OnlyNFTOwner()             |
-| `4913ed38` | OnlyOneProtoshipAtATime()  |
-| `d59ec5f1` | OnlySpaceFactory()         |
-| `ba378aba` | OnlySpaceFactoryOrOwner()  |
-| `794bb39b` | ReachedMaxSupply()         |
-| `5a8181f7` | TokenLocked()              |
-
+| Signature  | Description                        |
+|------------|------------------------------------|
+| `2d42c772` | AddressAlreadyRegistered()         |
+| `a6c022e1` | CanNotApprove()                    |
+| `1b5722f5` | CanNotTransfer()                   |
+| `ad67865d` | InvalidListLength()                |
+| `3d7555a9` | InvalidProtoship()                 |
+| `3f6cc768` | InvalidTokenId()                   |
+| `13f04adb` | InvalidTokenURI()                  |
+| `6a9a57a5` | NotWhiteListed()                   |
+| `de20ed63` | OnlyLockedToken()                  |
+| `d48af246` | OnlyNFTOwner()                     |
+| `4913ed38` | OnlyOneProtoshipAtATime()          |
+| `d59ec5f1` | OnlySpaceFactory()                 |
+| `ba378aba` | OnlySpaceFactoryOrOwner()          |
+| `794bb39b` | ReachedMaxSupply()                 |
+| `5a8181f7` | TokenLocked()                      |
+| `bcbb81a3` | ExceedMaxContributionPerMint()     |
+| `54254200` | ExceedMaxContributionPerUser()     |
+| `0b788403` | ExceedMaxTotalContribution()       |
+| `e6c4247b` | InvalidAddress()                   |
+| `8baa579f` | InvalidSignature()                 |
+| `87800a11` | OnlyExistingToken()                |
+| `462c468b` | OnlySpaceshipOwner()               |
+| `44dddc97` | RefundNotEnabled()                 |
+| `00a5a1f5` | TokenAlreadyMinted()               |
 
 ## ERC-6551 Tokenbound Implementation 
 
