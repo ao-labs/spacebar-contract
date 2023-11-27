@@ -20,19 +20,24 @@ async function main() {
 
 	await keyMinterUniverse1.deployed()
 
-	const key = keyMinterUniverse1.address
-	console.log("KeyMinterUniverse1 is deployed to:", key)
+	console.log(
+		"KeyMinterUniverse1 is deployed to:",
+		keyMinterUniverse1.address
+	)
 
+	const keyUniverse1 = await keyMinterUniverse1.keyUniverse1()
 	await keyMinterUniverse1.keyUniverse1()
-	console.log("KeyUniverse1 is deployed to:", keyMinterUniverse1.address)
+	console.log("KeyUniverse1 is deployed to:", keyUniverse1)
 
 	if (runVerify) {
 		console.log("----------------Verification---------------")
+		console.log("Waiting for 5 block confirmations...")
 		const WAIT_BLOCK_CONFIRMATIONS = 5
-		console.log("Verifying KeyMinterUniverse1 on etherscan...")
+
 		await keyMinterUniverse1.deployTransaction.wait(
 			WAIT_BLOCK_CONFIRMATIONS
 		)
+		console.log("Verifying KeyMinterUniverse1 on etherscan...")
 		// @ts-ignore
 		await run(`verify:verify`, {
 			address: keyMinterUniverse1.address,
@@ -45,9 +50,10 @@ async function main() {
 				process.env.TBA_IMPLEMENTATION_ADDRESS,
 			],
 		})
+		console.log("Verifying KeyUniverse1 on etherscan...")
 		// @ts-ignore
 		await run(`verify:verify`, {
-			address: key,
+			address: keyUniverse1,
 			constructorArguments: [
 				process.env.DEFAULT_ADMIN_ADDRESS,
 				process.env.OPERATOR_ADDRESS,
@@ -55,7 +61,6 @@ async function main() {
 			],
 		})
 	}
-
 	console.log("Done!")
 }
 
