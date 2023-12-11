@@ -333,7 +333,7 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
                         profileContractAddress,
                         profileTokenId,
                         spaceshipTokenId,
-                        _keyTokenIds,
+                        keccak256(abi.encodePacked(_keyTokenIds)),
                         contribution
                     )
                 )

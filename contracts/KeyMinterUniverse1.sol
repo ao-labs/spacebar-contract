@@ -387,7 +387,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
                 keyBatchMintParams.profileContractAddress,
                 keyBatchMintParams.profileTokenId,
                 keyBatchMintParams.spaceshipTokenId,
-                keyBatchMintParams.keyTokenIds,
+                keccak256(abi.encodePacked(keyBatchMintParams.keyTokenIds)),
                 keyBatchMintParams.contribution
             )
         );
