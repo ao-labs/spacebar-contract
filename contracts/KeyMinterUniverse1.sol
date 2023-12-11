@@ -20,10 +20,9 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         keccak256(
             "KeyMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256 keyTokenId,uint256 contribution)"
         );
-
     bytes32 public constant KEY_BATCH_MINT_PARAMS_TYPEHASH =
         keccak256(
-            "KeyMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
+            "KeyBatchMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
         );
 
     address public serviceAdmin;
