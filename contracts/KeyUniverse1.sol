@@ -28,7 +28,7 @@ contract KeyUniverse1 is ERC1155URIStorage, Ownable, AccessControl, Error {
         _setBaseURI("ipfs://");
     }
 
-    /* ============ External Functions ============ */
+    /* ============ Minter Functions ============ */
 
     function mint(address to, uint256 tokenId) public onlyRole(MINTER_ROLE) {
         if (balanceOf(to, tokenId) != 0) {
@@ -57,6 +57,8 @@ contract KeyUniverse1 is ERC1155URIStorage, Ownable, AccessControl, Error {
         _mintBatch(to, ids, amounts, "");
     }
 
+    /* ============ Operator Functions ============ */
+
     function setURIs(
         uint256[] memory tokenIds,
         string[] memory tokenURIs
@@ -64,6 +66,14 @@ contract KeyUniverse1 is ERC1155URIStorage, Ownable, AccessControl, Error {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _setURI(tokenIds[i], tokenURIs[i]);
         }
+    }
+
+    // when user abuses the system, the operator can burn the token
+    function burn(
+        address account,
+        uint256 tokenId
+    ) public onlyRole(OPERATOR_ROLE) {
+        _burn(account, tokenId, 1);
     }
 
     /// @dev This function is not implemented.
