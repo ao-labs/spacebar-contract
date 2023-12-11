@@ -29,22 +29,24 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
     bytes32 keyMintParamsTypeHash;
     bytes32 keyBatchMintParamsTypeHash;
 
+    address vault = vm.addr(1000);
     address operator = vm.addr(1001);
 
-    uint256[] keyTokenIds = [1010, 1020];
-    string[] keyURIs = ["aaa", "bbb"];
+    uint256[] keyTokenIds = [1010, 1020, 1030, 1040];
+    string[] keyURIs = ["aaa", "bbb", "ccc", "ddd"];
 
     function setUp() public override {
         super.setUp();
-        // user 1 and user 2 has nft
+        // user 0 and user 1 has nft
         for (uint256 i = 0; i < 2; i++) {
             externalERC721.mint(users[i], i);
         }
-        // user 1 has spaceship
+        // user 0 has spaceship
         vm.prank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
         keyMinter = new KeyMinterUniverse1(
+            payable(vault),
             defaultAdmin,
             operator,
             serviceAdmin,
@@ -97,6 +99,7 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
         );
         uint afterBalance = users[0].balance;
         assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[1]), 1);
+        assertEq(keyMinter.currentTotalContribution(), 1 ether);
         assertEq(keyMinter.getUserContribution(users[0]), 1 ether);
         assertEq(keyMinter.getUserMintCount(users[0]), 2);
         assertEq(beforeBalance - afterBalance, 1 ether);
@@ -170,9 +173,15 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
     function testMaxContribution() public {
         address profileContractAddress = address(externalERC721);
         uint256 profileTokenId = 0;
-        address spaceshipContractAddress = address(spaceship);
         uint256 spaceshipTokenId = 0;
         uint maxContributionPerUser = keyMinter.maxContributionPerUser();
+        uint128[] memory maxContributionSchedulePerMint = new uint128[](1);
+        maxContributionSchedulePerMint[0] = uint128(maxContributionPerUser + 1); // make it big enough
+        vm.prank(operator);
+        keyMinter.setMaxContributionSchedulePerMint(
+            maxContributionSchedulePerMint
+        );
+
         vm.deal(users[0], maxContributionPerUser + 1);
         // minting with the same key
         vm.expectRevert(ExceedMaxContributionPerUser.selector);
@@ -210,6 +219,133 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
         );
     }
 
+    function testdefaultContributionSchedulePerMint() public {
+        address profileContractAddress = address(externalERC721);
+        uint256 profileTokenId = 0;
+        uint256 spaceshipTokenId = 0;
+
+        vm.deal(users[0], 100 ether);
+        vm.startPrank(users[0]);
+
+        // default is up to 10 ether per mint
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[0],
+            11 ether
+        );
+
+        // this should work
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[0],
+            9 ether
+        );
+
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[1],
+            4 ether
+        );
+
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[2],
+            15 ether
+        );
+    }
+
+    function testMaxContributionSchedulePerMint() public {
+        address profileContractAddress = address(externalERC721);
+        uint256 profileTokenId = 0;
+        uint256 spaceshipTokenId = 0;
+        uint128[] memory maxContributionSchedulePerMint = new uint128[](3);
+        maxContributionSchedulePerMint[0] = 1 ether;
+        maxContributionSchedulePerMint[1] = 2 ether;
+        maxContributionSchedulePerMint[2] = 3 ether;
+        vm.prank(operator);
+        keyMinter.setMaxContributionSchedulePerMint(
+            maxContributionSchedulePerMint
+        );
+        vm.stopPrank();
+
+        vm.startPrank(users[0]);
+        vm.deal(users[0], 100 ether);
+
+        // first mint can contribute up to 1 ether
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[0],
+            2 ether
+        );
+
+        // this should work
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[0],
+            1 ether
+        );
+
+        // second mint can contribute up to 2 ether
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[1],
+            1.5 ether
+        );
+
+        // third mint can contribute up to 3 ether
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[2],
+            4 ether
+        );
+
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[2],
+            3 ether
+        );
+
+        // it stays the same for the rest of the mints
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[3],
+            4 ether
+        );
+
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[3],
+            3 ether
+        );
+    }
+
     function testBatchMintKey() public {
         address profileContractAddress = address(externalERC721);
         uint256 profileTokenId = 0;
@@ -222,24 +358,170 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
         assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[0]), 0);
         assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[1]), 0);
 
-        vm.deal(users[0], 10 ether);
+        vm.deal(users[0], 1000 ether);
+        // should revert because current default contribution is 10 ether per mint
+        uint256 contributionAmount = keyTokenIds.length * 10 ether + 1 ether;
+        vm.expectRevert(ExceedMaxContributionPerMint.selector);
         vm.startPrank(users[0]);
-        uint beforeBalance = users[0].balance;
         makeSigAndBatchMintKey(
             profileContractAddress,
             profileTokenId,
             spaceshipTokenId,
             keyTokenIds,
-            1 ether
+            contributionAmount
+        );
+
+        uint beforeBalance = users[0].balance;
+        // should work
+        contributionAmount = keyTokenIds.length * 10 ether;
+        makeSigAndBatchMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds,
+            contributionAmount
         );
         uint afterBalance = users[0].balance;
 
         assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[0]), 1);
         assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[1]), 1);
+        assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[2]), 1);
+        assertEq(key.balanceOf(spaceshipTBA, keyTokenIds[3]), 1);
 
-        assertEq(keyMinter.getUserContribution(users[0]), 1 ether);
-        assertEq(keyMinter.getUserMintCount(users[0]), 2);
-        assertEq(beforeBalance - afterBalance, 1 ether);
+        assertEq(keyMinter.getUserContribution(users[0]), contributionAmount);
+        assertEq(keyMinter.getUserMintCount(users[0]), keyTokenIds.length);
+        assertEq(beforeBalance - afterBalance, contributionAmount);
+    }
+
+    function testVaultBalance() public {
+        address profileContractAddress = address(externalERC721);
+        uint256 profileTokenId = 0;
+        uint256 spaceshipTokenId = 0;
+        vm.deal(users[0], 10 ether);
+        vm.startPrank(users[0]);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[0],
+            0.5 ether
+        );
+
+        assertEq(address(keyMinter).balance, 0 ether);
+        assertEq(address(vault).balance, 0.5 ether);
+
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[1],
+            0.5 ether
+        );
+        assertEq(address(keyMinter).balance, 0 ether);
+        assertEq(address(vault).balance, 1 ether);
+
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[2],
+            1.5 ether
+        );
+        assertEq(address(keyMinter).balance, 0 ether);
+        assertEq(address(vault).balance, 2.5 ether);
+    }
+
+    function testRefund() public {
+        address profileContractAddress = address(externalERC721);
+        vm.deal(users[1], 1 ether);
+        vm.deal(users[2], 3 ether);
+        vm.prank(users[0]);
+        makeSigAndMintKey(
+            profileContractAddress,
+            0,
+            0,
+            keyTokenIds[0],
+            0 ether
+        );
+        vm.startPrank(users[1]);
+        factory.mintProtoshipUniverse1(address(externalERC721), 1);
+        makeSigAndMintKey(
+            profileContractAddress,
+            1,
+            1,
+            keyTokenIds[0],
+            1 ether
+        );
+        vm.stopPrank();
+        vm.startPrank(users[2]);
+        externalERC721.mint(users[2], 2);
+        factory.mintProtoshipUniverse1(address(externalERC721), 2);
+        makeSigAndMintKey(
+            profileContractAddress,
+            2,
+            2,
+            keyTokenIds[0],
+            2 ether
+        );
+        // user 1 and user 2 has 1 ether and 2 ether contribution
+        assertEq(address(vault).balance, 3 ether);
+
+        // cannot send ether to key minter during normal period
+        vm.expectRevert(OnlyDuringRefundPeriod.selector);
+        payable(address(keyMinter)).transfer(1 ether);
+
+        // cannot refund during normal period
+        vm.expectRevert(OnlyDuringRefundPeriod.selector);
+        keyMinter.refund();
+
+        vm.expectRevert();
+        // only default admin can refund
+        keyMinter.setIsRefundEnabled(true);
+
+        vm.stopPrank();
+        vm.prank(defaultAdmin);
+        keyMinter.setIsRefundEnabled(true);
+
+        // cannot contribute during refund period
+        vm.expectRevert(NotDuringRefundPeriod.selector);
+        vm.prank(users[2]);
+        makeSigAndMintKey(
+            profileContractAddress,
+            2,
+            2,
+            keyTokenIds[1],
+            1 ether
+        );
+
+        // first, send the contribution back to key minter
+        vm.prank(vault);
+        payable(address(keyMinter)).transfer(
+            keyMinter.currentTotalContribution()
+        );
+        assertEq(address(keyMinter).balance, 3 ether);
+
+        // users call refund function
+        vm.prank(users[0]);
+        keyMinter.refund();
+        assertEq(users[0].balance, 0 ether);
+
+        vm.prank(users[1]);
+        keyMinter.refund();
+        assertEq(users[1].balance, 1 ether);
+
+        vm.prank(users[2]);
+        keyMinter.refund();
+        assertEq(users[2].balance, 3 ether);
+
+        // it won't send ether twice
+        vm.prank(users[2]);
+        keyMinter.refund();
+        assertEq(users[2].balance, 3 ether);
+
+        // it won't send ether to the user who didn't contribute
+        vm.prank(users[3]);
+        keyMinter.refund();
+        assertEq(users[3].balance, 0 ether);
     }
 
     function makeSigAndMintKey(

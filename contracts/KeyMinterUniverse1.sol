@@ -2,12 +2,11 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./interfaces/IERC6551Account.sol";
-import "./interfaces/IERC6551Registry.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import "./interfaces/IERC6551Account.sol";
+import "./interfaces/IERC6551Registry.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
-
 import "./KeyUniverse1.sol";
 import "./helper/Error.sol";
 
@@ -25,14 +24,17 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
             "KeyBatchMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
         );
 
+    address payable public vault;
     address public serviceAdmin;
     KeyUniverse1 public immutable keyUniverse1;
     ISpaceshipUniverse1 public immutable spaceshipUniverse1;
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
-    uint128[] public maxContributionSchedulePerMint;
-    uint128 public maxContributionPerUser = 1000000 ether;
-    uint256 public maxTotalContribution = 1000 ether;
+
+    uint128[] public maxContributionSchedulePerMint = [10 ether];
+    uint128 public maxContributionPerUser = 1000 ether;
+    uint256 public maxTotalContribution = 1000000 ether;
+    uint256 public currentTotalContribution;
     bool public isRefundEnabled;
 
     mapping(address => User) private _userStatus;
@@ -58,6 +60,9 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 contribution;
     }
 
+    /* ============ Events ============ */
+
+    event SetVault(address vault);
     event SetMaxContributionSchedulePerMint(
         uint128[] maxContributionSchedulePerMint
     );
@@ -72,6 +77,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
     /* ============ Constructor ============ */
 
     constructor(
+        address payable _vault,
         address defaultAdmin,
         address operator,
         address _serviceAdmin,
@@ -79,6 +85,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         IERC6551Registry _tokenBoundRegistry,
         IERC6551Account _tokenBoundImplementation
     ) EIP712("KeyMinterUniverse1", "1") {
+        vault = _vault;
         keyUniverse1 = new KeyUniverse1(defaultAdmin, operator, address(this));
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(OPERATOR_ROLE, operator);
@@ -86,9 +93,31 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         tokenBoundRegistry = (_tokenBoundRegistry);
         tokenBoundImplementation = (_tokenBoundImplementation);
         spaceshipUniverse1 = _spaceshipUniverse1;
+        emit SetVault(_vault);
         emit SetServiceAdmin(_serviceAdmin);
         emit SetTokenBoundImplementation(address(_tokenBoundImplementation));
         emit SetTokenBoundRegistry(address(_tokenBoundRegistry));
+    }
+
+    /* ============ Modifiers ============ */
+
+    modifier notDuringRefundPeriod() {
+        if (isRefundEnabled && msg.value > 0) {
+            revert NotDuringRefundPeriod();
+        }
+        _;
+    }
+
+    modifier onlyDuringRefundPeriod() {
+        if (!isRefundEnabled) {
+            revert OnlyDuringRefundPeriod();
+        }
+        _;
+    }
+
+    modifier sendFundToVault() {
+        _;
+        vault.transfer(address(this).balance);
     }
 
     /* ============ Operator Functions ============ */
@@ -123,6 +152,13 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Admin Functions ============ */
 
+    function setVault(
+        address payable _vault
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        vault = _vault;
+        emit SetVault(_vault);
+    }
+
     function setIsRefundEnabled(
         bool _isRefundEnabled
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -146,10 +182,6 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         emit SetTokenBoundRegistry(address(contractAddress));
     }
 
-    function withdraw(address to) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        payable(to).transfer(address(this).balance);
-    }
-
     /* ============ External Functions ============ */
 
     function mintKey(
@@ -158,7 +190,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 spaceshipTokenId,
         uint256 keyTokenId,
         bytes memory signature
-    ) external payable {
+    ) external payable notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyMintParams(
                 profileContractAddress,
@@ -174,12 +206,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
             revert InvalidSignature();
         }
 
-        if (
-            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
-            msg.sender
-        ) {
-            revert OnlyNFTOwner();
-        }
+        _checkNFTOwnership(profileContractAddress, profileTokenId);
 
         address nftTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
@@ -194,16 +221,17 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
 
         User storage user = _userStatus[msg.sender];
-        if (msg.value > getMaxContributionPerMint(user.mintCount)) {
+        if (msg.value > _getMaxContributionPerMint(user.mintCount)) {
             revert ExceedMaxContributionPerMint();
         }
         user.contribution += uint128(msg.value);
         user.mintCount += 1;
+        currentTotalContribution += msg.value;
 
         if (user.contribution > maxContributionPerUser) {
             revert ExceedMaxContributionPerUser();
         }
-        if (address(this).balance > maxTotalContribution) {
+        if (currentTotalContribution > maxTotalContribution) {
             revert ExceedMaxTotalContribution();
         }
 
@@ -224,7 +252,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 spaceshipTokenId,
         uint256[] memory keyTokenIds,
         bytes memory signature
-    ) external payable {
+    ) external payable notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyBatchMintParams(
                 profileContractAddress,
@@ -240,12 +268,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
             revert InvalidSignature();
         }
 
-        if (
-            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
-            msg.sender
-        ) {
-            revert OnlyNFTOwner();
-        }
+        _checkNFTOwnership(profileContractAddress, profileTokenId);
 
         address nftTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
@@ -263,18 +286,19 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         User storage user = _userStatus[msg.sender];
         if (
             msg.value >
-            getMaxContributionPerBatchMint(user.mintCount, keyTokenIdsLength)
+            _getMaxContributionPerBatchMint(user.mintCount, keyTokenIdsLength)
         ) {
             revert ExceedMaxContributionPerMint();
         }
 
         user.contribution += uint128(msg.value);
         user.mintCount += uint128(keyTokenIdsLength);
+        currentTotalContribution += msg.value;
 
         if (user.contribution > maxContributionPerUser) {
             revert ExceedMaxContributionPerUser();
         }
-        if (address(this).balance > maxTotalContribution) {
+        if (currentTotalContribution > maxTotalContribution) {
             revert ExceedMaxTotalContribution();
         }
 
@@ -291,10 +315,11 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
     }
 
-    function refund() external {
-        if (!isRefundEnabled) {
-            revert RefundNotEnabled();
-        }
+    /* ============ Emergency Functions ============ */
+
+    receive() external payable onlyDuringRefundPeriod {}
+
+    function refund() external onlyDuringRefundPeriod {
         User storage user = _userStatus[msg.sender];
         payable(msg.sender).transfer(user.contribution);
         emit Refund(msg.sender, user.contribution);
@@ -303,7 +328,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Internal Functions ============ */
 
-    function getMaxContributionPerMint(
+    function _getMaxContributionPerMint(
         uint256 currentMintCount
     ) internal view returns (uint128) {
         if (maxContributionSchedulePerMint.length == 0) {
@@ -320,7 +345,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         return maxContributionSchedulePerMint[currentMintCount];
     }
 
-    function getMaxContributionPerBatchMint(
+    function _getMaxContributionPerBatchMint(
         uint256 currentMintCount,
         uint256 amount
     ) internal view returns (uint128) {
@@ -341,6 +366,18 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
 
         return maxContribution;
+    }
+
+    function _checkNFTOwnership(
+        address profileContractAddress,
+        uint256 profileTokenId
+    ) internal virtual {
+        if (
+            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
+            msg.sender
+        ) {
+            revert OnlyNFTOwner();
+        }
     }
 
     /* ============ View Functions ============ */

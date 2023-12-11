@@ -22,10 +22,11 @@ contract Error {
     error ReachedMaxSupply();
     error OnlyExistingToken();
     error TokenAlreadyMinted();
-    error RefundNotEnabled();
+    error OnlyDuringRefundPeriod();
     error OnlySpaceshipOwner();
     error ExceedMaxContributionPerMint();
     error ExceedMaxContributionPerUser();
     error ExceedMaxTotalContribution();
     error InvalidSignature();
+    error NotDuringRefundPeriod();
 }

@@ -112,10 +112,10 @@ error OnlyExistingToken()
 error TokenAlreadyMinted()
 ```
 
-### RefundNotEnabled
+### OnlyDuringRefundPeriod
 
 ```solidity
-error RefundNotEnabled()
+error OnlyDuringRefundPeriod()
 ```
 
 ### OnlySpaceshipOwner
