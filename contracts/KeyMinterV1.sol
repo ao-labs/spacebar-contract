@@ -1,18 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
 import "./KeyUniverse1.sol";
 import "./helper/Error.sol";
 
-/// @title KeyMinterUniverse1
-/// @dev KeyMinterUniverse1 is a contract for minting Keys and collecting contributions.
-contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
+/// @title KeyMinterV1
+/// @dev KeyMinterV1 is a contract for minting Keys and collecting contributions.
+contract KeyMinterV1 is
+    Initializable,
+    UUPSUpgradeable,
+    AccessControlUpgradeable,
+    EIP712Upgradeable,
+    Error
+{
     /* ============ Variables ============ */
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     bytes32 public constant KEY_MINT_PARAMS_TYPEHASH =
@@ -26,14 +34,14 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     address payable public vault;
     address public serviceAdmin;
-    KeyUniverse1 public immutable keyUniverse1;
-    ISpaceshipUniverse1 public immutable spaceshipUniverse1;
+    KeyUniverse1 public keyUniverse1;
+    ISpaceshipUniverse1 public spaceshipUniverse1;
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
 
-    uint128[] public maxContributionSchedulePerMint = [10 ether];
-    uint128 public maxContributionPerUser = 1000 ether;
-    uint256 public maxTotalContribution = 1000000 ether;
+    uint128[] public maxContributionSchedulePerMint;
+    uint128 public maxContributionPerUser;
+    uint256 public maxTotalContribution;
     uint256 public currentTotalContribution;
     bool public isRefundEnabled;
 
@@ -76,7 +84,12 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Constructor ============ */
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
         address payable _vault,
         address defaultAdmin,
         address operator,
@@ -84,7 +97,8 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         ISpaceshipUniverse1 _spaceshipUniverse1,
         IERC6551Registry _tokenBoundRegistry,
         IERC6551Account _tokenBoundImplementation
-    ) EIP712("KeyMinterUniverse1", "1") {
+    ) public initializer {
+        __EIP712_init("KeyMinterUniverse1", "1");
         vault = _vault;
         keyUniverse1 = new KeyUniverse1(defaultAdmin, operator, address(this));
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
@@ -93,6 +107,13 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         tokenBoundRegistry = (_tokenBoundRegistry);
         tokenBoundImplementation = (_tokenBoundImplementation);
         spaceshipUniverse1 = _spaceshipUniverse1;
+        maxContributionSchedulePerMint = [10 ether];
+        maxContributionPerUser = 1000 ether;
+        maxTotalContribution = 1000000 ether;
+
+        emit SetMaxContributionPerUser(maxContributionPerUser);
+        emit SetMaxContributionPerUser(maxContributionPerUser);
+        emit SetMaxTotalContribution(maxTotalContribution);
         emit SetVault(_vault);
         emit SetServiceAdmin(_serviceAdmin);
         emit SetTokenBoundImplementation(address(_tokenBoundImplementation));
@@ -190,7 +211,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 spaceshipTokenId,
         uint256 keyTokenId,
         bytes memory signature
-    ) external payable notDuringRefundPeriod sendFundToVault {
+    ) external payable virtual notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyMintParams(
                 profileContractAddress,
@@ -252,7 +273,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 spaceshipTokenId,
         uint256[] memory keyTokenIds,
         bytes memory signature
-    ) external payable notDuringRefundPeriod sendFundToVault {
+    ) external payable virtual notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyBatchMintParams(
                 profileContractAddress,
@@ -317,9 +338,9 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Emergency Functions ============ */
 
-    receive() external payable onlyDuringRefundPeriod {}
+    receive() external payable virtual onlyDuringRefundPeriod {}
 
-    function refund() external onlyDuringRefundPeriod {
+    function refund() external virtual onlyDuringRefundPeriod {
         User storage user = _userStatus[msg.sender];
         payable(msg.sender).transfer(user.contribution);
         emit Refund(msg.sender, user.contribution);
@@ -330,7 +351,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     function _getMaxContributionPerMint(
         uint256 currentMintCount
-    ) internal view returns (uint128) {
+    ) internal view virtual returns (uint128) {
         if (maxContributionSchedulePerMint.length == 0) {
             return type(uint128).max;
         }
@@ -348,7 +369,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
     function _getMaxContributionPerBatchMint(
         uint256 currentMintCount,
         uint256 amount
-    ) internal view returns (uint128) {
+    ) internal view virtual returns (uint128) {
         if (maxContributionSchedulePerMint.length == 0) {
             return type(uint128).max;
         }
@@ -380,24 +401,32 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
     }
 
+    function _authorizeUpgrade(
+        address
+    ) internal virtual override onlyRole(DEFAULT_ADMIN_ROLE) {}
+
     /* ============ View Functions ============ */
 
     function DOMAIN_SEPARATOR() external view virtual returns (bytes32) {
         return _domainSeparatorV4();
     }
 
-    function getUserContribution(address user) external view returns (uint128) {
+    function getUserContribution(
+        address user
+    ) external view virtual returns (uint128) {
         return _userStatus[user].contribution;
     }
 
-    function getUserMintCount(address user) external view returns (uint128) {
+    function getUserMintCount(
+        address user
+    ) external view virtual returns (uint128) {
         return _userStatus[user].mintCount;
     }
 
     function getSigner(
         KeyMintParams memory keyMintParams,
         bytes memory signature
-    ) public view returns (address) {
+    ) public view virtual returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 KEY_MINT_PARAMS_TYPEHASH,
@@ -410,14 +439,14 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         );
         bytes32 digest = _hashTypedDataV4(structHash);
 
-        (address signer, ) = ECDSA.tryRecover(digest, signature);
+        (address signer, ) = ECDSAUpgradeable.tryRecover(digest, signature);
         return signer;
     }
 
     function getSigner(
         KeyBatchMintParams memory keyBatchMintParams,
         bytes memory signature
-    ) public view returns (address) {
+    ) public view virtual returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 KEY_BATCH_MINT_PARAMS_TYPEHASH,
@@ -430,7 +459,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         );
         bytes32 digest = _hashTypedDataV4(structHash);
 
-        (address signer, ) = ECDSA.tryRecover(digest, signature);
+        (address signer, ) = ECDSAUpgradeable.tryRecover(digest, signature);
         return signer;
     }
 }

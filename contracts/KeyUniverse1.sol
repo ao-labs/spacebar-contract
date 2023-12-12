@@ -21,6 +21,7 @@ contract KeyUniverse1 is ERC1155URIStorage, Ownable, AccessControl, Error {
         address operator,
         address minter
     ) ERC1155("") {
+        // do not set default uri here
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(OPERATOR_ROLE, operator);
         _grantRole(MINTER_ROLE, minter);

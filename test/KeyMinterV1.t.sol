@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 
 import "./helper/DefaultSetup.sol";
 import "../contracts/helper/Error.sol";
-import "../contracts/KeyMinterUniverse1.sol";
+import "../contracts/KeyMinterV1.sol";
 import "../contracts/KeyUniverse1.sol";
+import "../contracts/SampleKeyMinterV2.sol";
 
-contract KeyMinterUniverse1Test is DefaultSetup, Error {
+contract KeyMinterV1Test is DefaultSetup, Error {
     // bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
     // address defaultAdmin;
     // address serviceAdmin;
@@ -22,7 +23,7 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
     // uint16 maxSupply = 10;
     // address[] users;
 
-    KeyMinterUniverse1 public keyMinter;
+    KeyMinterV1 public keyMinter;
     KeyUniverse1 public key;
 
     bytes32 keyMinterDomainSeparator;
@@ -45,14 +46,25 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
         vm.prank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
-        keyMinter = new KeyMinterUniverse1(
-            payable(vault),
-            defaultAdmin,
-            operator,
-            serviceAdmin,
-            spaceship,
-            registry,
-            implementation
+        // deploy KeyMinterV1 as a proxy
+        keyMinter = KeyMinterV1(
+            payable(
+                address(
+                    new ERC1967Proxy(
+                        address(new KeyMinterV1()),
+                        abi.encodeWithSignature(
+                            "initialize(address,address,address,address,address,address,address)",
+                            vault,
+                            defaultAdmin,
+                            operator,
+                            serviceAdmin,
+                            spaceship,
+                            registry,
+                            implementation
+                        )
+                    )
+                )
+            )
         );
 
         key = keyMinter.keyUniverse1();
@@ -523,6 +535,63 @@ contract KeyMinterUniverse1Test is DefaultSetup, Error {
         keyMinter.refund();
         assertEq(users[3].balance, 0 ether);
     }
+
+    function testUpgradeability() public {
+        // cannot initialize twice
+        vm.expectRevert();
+        keyMinter.initialize(
+            payable(vault),
+            defaultAdmin,
+            operator,
+            serviceAdmin,
+            spaceship,
+            registry,
+            implementation
+        );
+
+        SampleKeyMinterV2 newImplementation = new SampleKeyMinterV2();
+        SampleKeyMinterV2 newImplementation2 = new SampleKeyMinterV2();
+
+        address profileContractAddress = address(externalERC721);
+        uint256 profileTokenId = 0;
+        uint256 spaceshipTokenId = 0;
+        vm.startPrank(users[1]);
+
+        // Before upgrade, this should revert because user 1 doesn't have profile 0
+        vm.expectRevert(OnlyNFTOwner.selector);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[1],
+            0
+        );
+
+        // try upgrading
+        vm.expectRevert(); // only default admin can change the implementation
+        keyMinter.upgradeTo(address(newImplementation));
+        vm.stopPrank();
+
+        // now it should work
+        vm.prank(defaultAdmin);
+        keyMinter.upgradeTo(address(newImplementation));
+
+        // if the upgrade is successful, it can be upgraded by anyone
+        vm.prank(users[0]);
+        keyMinter.upgradeTo(address(newImplementation2));
+
+        // also this should not revert since _checkNFTOwnership is overridden
+        vm.prank(users[1]);
+        makeSigAndMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            keyTokenIds[1],
+            0
+        );
+    }
+
+    /* ============ Util Functions ============ */
 
     function makeSigAndMintKey(
         address profileContractAddress,
