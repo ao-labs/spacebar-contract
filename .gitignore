@@ -1,5 +1,8 @@
 node_modules
 .env
+.env.dev
+.env.stg
+.env.prod
 coverage
 coverage.json
 typechain
