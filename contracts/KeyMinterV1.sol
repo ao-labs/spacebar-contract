@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
-import "./KeyUniverse1.sol";
+import "./interfaces/IKeyUniverse1.sol";
 import "./helper/Error.sol";
 
 /// @title KeyMinterV1
@@ -34,7 +34,7 @@ contract KeyMinterV1 is
 
     address payable public vault;
     address public serviceAdmin;
-    KeyUniverse1 public keyUniverse1;
+    IKeyUniverse1 public keyUniverse1;
     ISpaceshipUniverse1 public spaceshipUniverse1;
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
@@ -95,12 +95,13 @@ contract KeyMinterV1 is
         address operator,
         address _serviceAdmin,
         ISpaceshipUniverse1 _spaceshipUniverse1,
+        IKeyUniverse1 _keyUniverse1,
         IERC6551Registry _tokenBoundRegistry,
         IERC6551Account _tokenBoundImplementation
     ) public initializer {
         __EIP712_init("KeyMinterUniverse1", "1");
         vault = _vault;
-        keyUniverse1 = new KeyUniverse1(defaultAdmin, operator, address(this));
+        keyUniverse1 = _keyUniverse1;
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(OPERATOR_ROLE, operator);
         serviceAdmin = _serviceAdmin;

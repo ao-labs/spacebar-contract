@@ -48,26 +48,20 @@ contract KeyMinterV1Test is DefaultSetup, Error {
 
         // deploy KeyMinterV1 as a proxy
         keyMinter = KeyMinterV1(
-            payable(
-                address(
-                    new ERC1967Proxy(
-                        address(new KeyMinterV1()),
-                        abi.encodeWithSignature(
-                            "initialize(address,address,address,address,address,address,address)",
-                            vault,
-                            defaultAdmin,
-                            operator,
-                            serviceAdmin,
-                            spaceship,
-                            registry,
-                            implementation
-                        )
-                    )
-                )
-            )
+            payable(address(new ERC1967Proxy(address(new KeyMinterV1()), "")))
+        );
+        key = new KeyUniverse1(defaultAdmin, operator, address(keyMinter));
+        keyMinter.initialize(
+            payable(vault),
+            defaultAdmin,
+            operator,
+            serviceAdmin,
+            spaceship,
+            IKeyUniverse1(address(key)),
+            registry,
+            implementation
         );
 
-        key = keyMinter.keyUniverse1();
         keyMinterDomainSeparator = keyMinter.DOMAIN_SEPARATOR();
         keyMintParamsTypeHash = keyMinter.KEY_MINT_PARAMS_TYPEHASH();
         keyBatchMintParamsTypeHash = keyMinter.KEY_BATCH_MINT_PARAMS_TYPEHASH();
@@ -545,6 +539,7 @@ contract KeyMinterV1Test is DefaultSetup, Error {
             operator,
             serviceAdmin,
             spaceship,
+            IKeyUniverse1(address(key)),
             registry,
             implementation
         );
