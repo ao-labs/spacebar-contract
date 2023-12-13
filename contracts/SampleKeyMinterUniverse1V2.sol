@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "./KeyMinterV1.sol";
+import "./KeyMinterUniverse1V1.sol";
 
 /// @title SampleKeyMinterV2
 /// @notice This contract is just for testing upgradeability
-contract SampleKeyMinterV2 is KeyMinterV1 {
+contract SampleKeyMinterUniverse1V2 is KeyMinterUniverse1V1 {
     function _authorizeUpgrade(address) internal override {
         // allow anyone to upgrade
     }

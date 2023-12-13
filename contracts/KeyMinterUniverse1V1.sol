@@ -12,9 +12,9 @@ import "./interfaces/ISpaceshipUniverse1.sol";
 import "./interfaces/IKeyUniverse1.sol";
 import "./helper/Error.sol";
 
-/// @title KeyMinterV1
-/// @dev KeyMinterV1 is a contract for minting Keys and collecting contributions.
-contract KeyMinterV1 is
+/// @title KeyMinterUniverse1V1
+/// @dev KeyMinterUniverse1V1 is a contract for minting Keys and collecting contributions.
+contract KeyMinterUniverse1V1 is
     Initializable,
     UUPSUpgradeable,
     AccessControlUpgradeable,

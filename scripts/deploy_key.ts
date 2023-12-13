@@ -1,19 +1,28 @@
 import { ethers, upgrades } from "hardhat"
-import { KeyMinterV1, KeyUniverse1 } from "../typechain-types"
+import { KeyMinterUniverse1V1, KeyUniverse1 } from "../typechain-types"
 
 async function main() {
 	const runVerify = true
-	/// @dev Deploying KeyMinterV1
-	console.log("Deploying KeyMinterV1...")
-	const KeyMinterV1 = await ethers.getContractFactory("KeyMinterV1")
+	/// @dev Deploying KeyMinterUniverse1V1
+	console.log("Deploying KeyMinterUniverse1V1...")
+	const KeyMinterUniverse1V1 = await ethers.getContractFactory(
+		"KeyMinterUniverse1V1"
+	)
 
-	const keyMinterV1 = (await upgrades.deployProxy(KeyMinterV1, [], {
-		initializer: false,
-	})) as KeyMinterV1
+	const keyMinterUniverse1V1 = (await upgrades.deployProxy(
+		KeyMinterUniverse1V1,
+		[],
+		{
+			initializer: false,
+		}
+	)) as KeyMinterUniverse1V1
 
-	await keyMinterV1.deployed()
+	await keyMinterUniverse1V1.deployed()
 
-	console.log("KeyMinterV1 is deployed to:", keyMinterV1.address)
+	console.log(
+		"KeyMinterUniverse1V1 is deployed to:",
+		keyMinterUniverse1V1.address
+	)
 
 	/// @dev Deploying KeyUniverse1
 	console.log("Deploying KeyUniverse1...")
@@ -22,15 +31,15 @@ async function main() {
 	const keyUniverse1 = (await KeyUniverse1.deploy(
 		process.env.DEFAULT_ADMIN_ADDRESS,
 		process.env.OPERATOR_ADDRESS,
-		keyMinterV1.address
+		keyMinterUniverse1V1.address
 	)) as KeyUniverse1
 
 	await keyUniverse1.deployed()
 
 	console.log("KeyUniverse1 is deployed to:", keyUniverse1.address)
 
-	console.log("Intializing KeyMinterV1...")
-	await keyMinterV1.initialize(
+	console.log("Intializing KeyMinterUniverse1V1...")
+	await keyMinterUniverse1V1.initialize(
 		// @ts-ignore
 		process.env.VAULT_ADDRESS,
 		process.env.DEFAULT_ADMIN_ADDRESS,
@@ -46,11 +55,17 @@ async function main() {
 		console.log("----------------Verification---------------")
 		console.log("Waiting for 5 block confirmations...")
 		const WAIT_BLOCK_CONFIRMATIONS = 5
-		await keyMinterV1.deployTransaction.wait(WAIT_BLOCK_CONFIRMATIONS)
+		await keyMinterUniverse1V1.deployTransaction.wait(
+			WAIT_BLOCK_CONFIRMATIONS
+		)
 
-		console.log("Verifying KeyMinterV1 implementation on etherscan...")
+		console.log(
+			"Verifying KeyMinterUniverse1V1 implementation on etherscan..."
+		)
 		const implementationAddress =
-			await upgrades.erc1967.getImplementationAddress(keyMinterV1.address)
+			await upgrades.erc1967.getImplementationAddress(
+				keyMinterUniverse1V1.address
+			)
 		// @ts-ignore
 		await run(`verify:verify`, {
 			address: implementationAddress,
@@ -63,7 +78,7 @@ async function main() {
 			constructorArguments: [
 				process.env.DEFAULT_ADMIN_ADDRESS,
 				process.env.OPERATOR_ADDRESS,
-				keyMinterV1.address,
+				keyMinterUniverse1V1.address,
 			],
 		})
 	}

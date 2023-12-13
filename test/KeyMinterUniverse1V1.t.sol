@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import "./helper/DefaultSetup.sol";
 import "../contracts/helper/Error.sol";
-import "../contracts/KeyMinterV1.sol";
+import "../contracts/KeyMinterUniverse1V1.sol";
 import "../contracts/KeyUniverse1.sol";
-import "../contracts/SampleKeyMinterV2.sol";
+import "../contracts/SampleKeyMinterUniverse1V2.sol";
 
-contract KeyMinterV1Test is DefaultSetup, Error {
+contract KeyMinterUniverse1V1Test is DefaultSetup, Error {
     // bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;
     // address defaultAdmin;
     // address serviceAdmin;
@@ -23,7 +23,7 @@ contract KeyMinterV1Test is DefaultSetup, Error {
     // uint16 maxSupply = 10;
     // address[] users;
 
-    KeyMinterV1 public keyMinter;
+    KeyMinterUniverse1V1 public keyMinter;
     KeyUniverse1 public key;
 
     bytes32 keyMinterDomainSeparator;
@@ -46,9 +46,13 @@ contract KeyMinterV1Test is DefaultSetup, Error {
         vm.prank(users[0]);
         factory.mintProtoshipUniverse1(address(externalERC721), 0);
 
-        // deploy KeyMinterV1 as a proxy
-        keyMinter = KeyMinterV1(
-            payable(address(new ERC1967Proxy(address(new KeyMinterV1()), "")))
+        // deploy KeyMinterUniverse1V1 as a proxy
+        keyMinter = KeyMinterUniverse1V1(
+            payable(
+                address(
+                    new ERC1967Proxy(address(new KeyMinterUniverse1V1()), "")
+                )
+            )
         );
         key = new KeyUniverse1(defaultAdmin, operator, address(keyMinter));
         keyMinter.initialize(
@@ -544,8 +548,8 @@ contract KeyMinterV1Test is DefaultSetup, Error {
             implementation
         );
 
-        SampleKeyMinterV2 newImplementation = new SampleKeyMinterV2();
-        SampleKeyMinterV2 newImplementation2 = new SampleKeyMinterV2();
+        SampleKeyMinterUniverse1V2 newImplementation = new SampleKeyMinterUniverse1V2();
+        SampleKeyMinterUniverse1V2 newImplementation2 = new SampleKeyMinterUniverse1V2();
 
         address profileContractAddress = address(externalERC721);
         uint256 profileTokenId = 0;
