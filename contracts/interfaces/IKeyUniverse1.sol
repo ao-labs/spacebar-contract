@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 /// @title IKeyUniverse1
-/// @dev Keys are non-transferable semi-fungible tokens.
+/// @dev Inteface for KeyUniverse1
 interface IKeyUniverse1 is IERC1155 {
     function mint(address to, uint256 tokenId) external;
 
