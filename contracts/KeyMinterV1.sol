@@ -139,7 +139,14 @@ contract KeyMinterV1 is
 
     modifier sendFundToVault() {
         _;
-        vault.transfer(address(this).balance);
+        if (address(this).balance > 0) {
+            (bool success, ) = vault.call{
+                value: address(this).balance,
+                // it takes about 6300 gas to send eth to gnosis safe(without using access lists)
+                gas: 8000 
+            }("");
+            require(success, "failed to send ether to vault");
+        }
     }
 
     /* ============ Operator Functions ============ */
