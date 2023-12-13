@@ -32,7 +32,7 @@ contract KeyMinterUniverse1V1 is
             "KeyBatchMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
         );
 
-    address payable public vault;
+    address payable public vault; // where the ether contribution goes
     address public serviceAdmin;
     IKeyUniverse1 public keyUniverse1;
     ISpaceshipUniverse1 public spaceshipUniverse1;
@@ -151,6 +151,8 @@ contract KeyMinterUniverse1V1 is
 
     /* ============ Operator Functions ============ */
 
+    /// @dev ex. [1 ether, 2 ether, 3 ether] means 
+    /// 1 ether cap for the first mint, 2 ether for the second, and 3 ether for the third
     function setMaxContributionSchedulePerMint(
         uint128[] memory _maxContributionSchedulePerMint
     ) external onlyRole(OPERATOR_ROLE) {
@@ -158,6 +160,7 @@ contract KeyMinterUniverse1V1 is
         emit SetMaxContributionSchedulePerMint(_maxContributionSchedulePerMint);
     }
 
+    /// @dev max cap per address
     function setMaxContributionPerUser(
         uint128 _maxContributionPerUser
     ) external onlyRole(OPERATOR_ROLE) {
@@ -165,6 +168,7 @@ contract KeyMinterUniverse1V1 is
         emit SetMaxContributionPerUser(_maxContributionPerUser);
     }
 
+    /// @dev max cap for the whole contract 
     function setMaxTotalContribution(
         uint256 _maxTotalContribution
     ) external onlyRole(OPERATOR_ROLE) {
@@ -172,6 +176,7 @@ contract KeyMinterUniverse1V1 is
         emit SetMaxTotalContribution(_maxTotalContribution);
     }
 
+    /// @dev set's the server-side admin
     function setServiceAdmin(
         address _serviceAdmin
     ) external onlyRole(OPERATOR_ROLE) {
@@ -181,6 +186,7 @@ contract KeyMinterUniverse1V1 is
 
     /* ============ Admin Functions ============ */
 
+    /// @dev set's the vault address
     function setVault(
         address payable _vault
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -188,6 +194,9 @@ contract KeyMinterUniverse1V1 is
         emit SetVault(_vault);
     }
 
+    /// @dev in case of emgergency refund, first set isRefundEnabled to true
+    /// and then deposit ether to this contract,
+    /// finally, users can call refund() to get their contribution back
     function setIsRefundEnabled(
         bool _isRefundEnabled
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -213,6 +222,8 @@ contract KeyMinterUniverse1V1 is
 
     /* ============ External Functions ============ */
 
+    /// @dev mints a key under the Spaceship TBA
+    /// User needs to submit a server-side signature 
     function mintKey(
         address profileContractAddress,
         uint256 profileTokenId,
@@ -275,6 +286,7 @@ contract KeyMinterUniverse1V1 is
         keyUniverse1.mint(spaceshipTBA, keyTokenId);
     }
 
+    /// @dev mints multiple keys at once under the Spaceship TBA
     function batchMintKey(
         address profileContractAddress,
         uint256 profileTokenId,
@@ -346,8 +358,10 @@ contract KeyMinterUniverse1V1 is
 
     /* ============ Emergency Functions ============ */
 
+    /// @dev receiving ether is available only when isRefundEnabled is true
     receive() external payable virtual onlyDuringRefundPeriod {}
 
+    /// @dev refund is available only when isRefundEnabled is true
     function refund() external virtual onlyDuringRefundPeriod {
         User storage user = _userStatus[msg.sender];
         payable(msg.sender).transfer(user.contribution);
@@ -397,6 +411,8 @@ contract KeyMinterUniverse1V1 is
         return maxContribution;
     }
 
+    /// @dev check if the user owns the NFT
+    /// this may be upgraded in the future to support delegate.cash
     function _checkNFTOwnership(
         address profileContractAddress,
         uint256 profileTokenId

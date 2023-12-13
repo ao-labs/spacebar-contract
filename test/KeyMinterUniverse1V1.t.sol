@@ -35,6 +35,7 @@ contract KeyMinterUniverse1V1Test is DefaultSetup, Error {
 
     uint256[] keyTokenIds = [1010, 1020, 1030, 1040];
     string[] keyURIs = ["aaa", "bbb", "ccc", "ddd"];
+    uint256[] invalidKeyTokenIds = [1010, 1020, 1020, 1040];
 
     function setUp() public override {
         super.setUp();
@@ -401,6 +402,22 @@ contract KeyMinterUniverse1V1Test is DefaultSetup, Error {
         assertEq(keyMinter.getUserContribution(users[0]), contributionAmount);
         assertEq(keyMinter.getUserMintCount(users[0]), keyTokenIds.length);
         assertEq(beforeBalance - afterBalance, contributionAmount);
+    }
+
+    function testBatchMintKeyRevert() public {
+        address profileContractAddress = address(externalERC721);
+        uint256 profileTokenId = 0;
+        uint256 spaceshipTokenId = 0;
+
+        vm.expectRevert(TokenAlreadyMinted.selector);
+        vm.startPrank(users[0]);
+        makeSigAndBatchMintKey(
+            profileContractAddress,
+            profileTokenId,
+            spaceshipTokenId,
+            invalidKeyTokenIds,
+            0
+        );
     }
 
     function testVaultBalance() public {
