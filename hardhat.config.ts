@@ -22,8 +22,8 @@ const config: HardhatUserConfig = {
 		pages: "files",
 	},
 	networks: {
-		goerli: {
-			url: process.env.GOERLI_RPC || "",
+		sepolia: {
+			url: process.env.SEPOLIA_RPC || "",
 			accounts: [process.env.DEPLOYER_PRIVATE_KEY || ""],
 		},
 		mainnet: {
