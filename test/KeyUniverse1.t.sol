@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/access/IAccessControl.sol";
 
 contract KeyUniverse1Test is Test, Error {
     address admin;
+    address operator;
     address minter;
     address user1;
     address user2;
@@ -20,10 +21,11 @@ contract KeyUniverse1Test is Test, Error {
 
     function setUp() public {
         admin = vm.addr(1);
-        minter = vm.addr(2);
-        user1 = vm.addr(3);
-        user2 = vm.addr(4);
-        key = new KeyUniverse1(admin, admin, minter);
+        operator = vm.addr(2);
+        minter = vm.addr(3);
+        user1 = vm.addr(4);
+        user2 = vm.addr(5);
+        key = new KeyUniverse1(admin, operator, minter);
 
         tokenIds.push(0);
         tokenIds.push(1);
@@ -36,12 +38,12 @@ contract KeyUniverse1Test is Test, Error {
     function testURI() public {
         assertEq(key.uri(0), "");
 
-        // only admin can set uri
+        // only operator can set uri
         vm.prank(minter);
         vm.expectRevert();
         key.setURIs(tokenIds, tokenURIs);
 
-        vm.prank(admin);
+        vm.prank(operator);
         key.setURIs(tokenIds, tokenURIs);
 
         assertEq(key.uri(0), "ipfs://a");
@@ -63,7 +65,7 @@ contract KeyUniverse1Test is Test, Error {
         vm.expectRevert(OnlyExistingToken.selector);
         key.mint(user1, tokenId);
 
-        vm.prank(admin);
+        vm.prank(operator);
         key.setURIs(tokenIds, tokenURIs);
 
         vm.prank(minter);
@@ -72,7 +74,7 @@ contract KeyUniverse1Test is Test, Error {
     }
 
     function testMintBatch() public {
-        vm.prank(admin);
+        vm.prank(operator);
         key.setURIs(tokenIds, tokenURIs);
 
         vm.prank(minter);
@@ -93,7 +95,7 @@ contract KeyUniverse1Test is Test, Error {
 
     function testTransferAndApproveRevert() public {
         uint256 tokenId = 0;
-        vm.prank(admin);
+        vm.prank(operator);
         key.setURIs(tokenIds, tokenURIs);
 
         vm.prank(minter);
@@ -119,5 +121,33 @@ contract KeyUniverse1Test is Test, Error {
         );
         assertEq(key.supportsInterface(type(IERC721).interfaceId), false);
         assertEq(key.supportsInterface(type(IAccessControl).interfaceId), true);
+    }
+
+    function testBurn() public {
+        vm.prank(operator);
+        key.setURIs(tokenIds, tokenURIs);
+
+        vm.prank(minter);
+        key.mintBatch(user1, tokenIds);
+
+        for (uint i = 0; i < tokenIds.length; i++) {
+            assertEq(key.balanceOf(user1, tokenIds[i]), 1);
+        }
+
+        vm.prank(minter);
+        vm.expectRevert(); // only operator
+        key.burn(user1, 0);
+
+        vm.prank(user1);
+        vm.expectRevert(); // only operator
+        key.burn(user1, 0);
+
+        vm.startPrank(operator);
+        key.burn(user1, 0);
+        assertEq(key.balanceOf(user1, tokenIds[0]), 0);
+        assertEq(key.balanceOf(user1, tokenIds[1]), 1); // shouldn't be burned
+
+        vm.expectRevert(); // only operator
+        key.burn(user1, 0); // cannot burn twice
     }
 }

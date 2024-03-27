@@ -1,39 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/IERC6551Account.sol";
 import "./interfaces/IERC6551Registry.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "./interfaces/ISpaceshipUniverse1.sol";
-
-import "./KeyUniverse1.sol";
+import "./interfaces/IKeyUniverse1.sol";
 import "./helper/Error.sol";
 
-/// @title KeyMinterUniverse1
-/// @dev KeyMinterUniverse1 is a contract for minting Keys and collecting contributions.
-contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
+/// @title KeyMinterUniverse1V1
+/// @dev KeyMinterUniverse1V1 is a contract for minting Keys and collecting contributions.
+contract KeyMinterUniverse1V1 is
+    Initializable,
+    UUPSUpgradeable,
+    AccessControlUpgradeable,
+    EIP712Upgradeable,
+    Error
+{
     /* ============ Variables ============ */
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     bytes32 public constant KEY_MINT_PARAMS_TYPEHASH =
         keccak256(
             "KeyMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256 keyTokenId,uint256 contribution)"
         );
-
     bytes32 public constant KEY_BATCH_MINT_PARAMS_TYPEHASH =
         keccak256(
-            "KeyMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
+            "KeyBatchMintParams(address profileContractAddress,uint256 profileTokenId,uint256 spaceshipTokenId,uint256[] keyTokenIds,uint256 contribution)"
         );
 
+    address payable public vault; // where the ether contribution goes
     address public serviceAdmin;
-    KeyUniverse1 public immutable keyUniverse1;
-    ISpaceshipUniverse1 public immutable spaceshipUniverse1;
+    IKeyUniverse1 public keyUniverse1;
+    ISpaceshipUniverse1 public spaceshipUniverse1;
     IERC6551Account public tokenBoundImplementation;
     IERC6551Registry public tokenBoundRegistry;
+
     uint128[] public maxContributionSchedulePerMint;
-    uint128 public maxContributionPerUser = 1000000 ether;
-    uint256 public maxTotalContribution = 1000 ether;
+    uint128 public maxContributionPerUser;
+    uint256 public maxTotalContribution;
+    uint256 public currentTotalContribution;
     bool public isRefundEnabled;
 
     mapping(address => User) private _userStatus;
@@ -59,6 +68,9 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         uint256 contribution;
     }
 
+    /* ============ Events ============ */
+
+    event SetVault(address vault);
     event SetMaxContributionSchedulePerMint(
         uint128[] maxContributionSchedulePerMint
     );
@@ -72,28 +84,75 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Constructor ============ */
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address payable _vault,
         address defaultAdmin,
         address operator,
         address _serviceAdmin,
         ISpaceshipUniverse1 _spaceshipUniverse1,
+        IKeyUniverse1 _keyUniverse1,
         IERC6551Registry _tokenBoundRegistry,
         IERC6551Account _tokenBoundImplementation
-    ) EIP712("KeyMinterUniverse1", "1") {
-        keyUniverse1 = new KeyUniverse1(defaultAdmin, operator, address(this));
+    ) public initializer {
+        __EIP712_init("KeyMinterUniverse1", "1");
+        vault = _vault;
+        keyUniverse1 = _keyUniverse1;
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(OPERATOR_ROLE, operator);
         serviceAdmin = _serviceAdmin;
         tokenBoundRegistry = (_tokenBoundRegistry);
         tokenBoundImplementation = (_tokenBoundImplementation);
         spaceshipUniverse1 = _spaceshipUniverse1;
+        maxContributionSchedulePerMint = [10 ether];
+        maxContributionPerUser = 1000 ether;
+        maxTotalContribution = 1000000 ether;
+
+        emit SetMaxContributionPerUser(maxContributionPerUser);
+        emit SetMaxContributionPerUser(maxContributionPerUser);
+        emit SetMaxTotalContribution(maxTotalContribution);
+        emit SetVault(_vault);
         emit SetServiceAdmin(_serviceAdmin);
         emit SetTokenBoundImplementation(address(_tokenBoundImplementation));
         emit SetTokenBoundRegistry(address(_tokenBoundRegistry));
     }
 
+    /* ============ Modifiers ============ */
+
+    modifier notDuringRefundPeriod() {
+        if (isRefundEnabled && msg.value > 0) {
+            revert NotDuringRefundPeriod();
+        }
+        _;
+    }
+
+    modifier onlyDuringRefundPeriod() {
+        if (!isRefundEnabled) {
+            revert OnlyDuringRefundPeriod();
+        }
+        _;
+    }
+
+    modifier sendFundToVault() {
+        _;
+        if (address(this).balance > 0) {
+            (bool success, ) = vault.call{
+                value: address(this).balance,
+                // it takes about 6300 gas to send eth to gnosis safe(without using access lists)
+                gas: 8000 
+            }("");
+            require(success, "failed to send ether to vault");
+        }
+    }
+
     /* ============ Operator Functions ============ */
 
+    /// @dev ex. [1 ether, 2 ether, 3 ether] means 
+    /// 1 ether cap for the first mint, 2 ether for the second, and 3 ether for the third
     function setMaxContributionSchedulePerMint(
         uint128[] memory _maxContributionSchedulePerMint
     ) external onlyRole(OPERATOR_ROLE) {
@@ -101,6 +160,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         emit SetMaxContributionSchedulePerMint(_maxContributionSchedulePerMint);
     }
 
+    /// @dev max cap per address
     function setMaxContributionPerUser(
         uint128 _maxContributionPerUser
     ) external onlyRole(OPERATOR_ROLE) {
@@ -108,6 +168,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         emit SetMaxContributionPerUser(_maxContributionPerUser);
     }
 
+    /// @dev max cap for the whole contract 
     function setMaxTotalContribution(
         uint256 _maxTotalContribution
     ) external onlyRole(OPERATOR_ROLE) {
@@ -115,6 +176,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         emit SetMaxTotalContribution(_maxTotalContribution);
     }
 
+    /// @dev set's the server-side admin
     function setServiceAdmin(
         address _serviceAdmin
     ) external onlyRole(OPERATOR_ROLE) {
@@ -124,6 +186,17 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Admin Functions ============ */
 
+    /// @dev set's the vault address
+    function setVault(
+        address payable _vault
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        vault = _vault;
+        emit SetVault(_vault);
+    }
+
+    /// @dev in case of emgergency refund, first set isRefundEnabled to true
+    /// and then deposit ether to this contract,
+    /// finally, users can call refund() to get their contribution back
     function setIsRefundEnabled(
         bool _isRefundEnabled
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -147,19 +220,17 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         emit SetTokenBoundRegistry(address(contractAddress));
     }
 
-    function withdraw(address to) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        payable(to).transfer(address(this).balance);
-    }
-
     /* ============ External Functions ============ */
 
+    /// @dev mints a key under the Spaceship TBA
+    /// User needs to submit a server-side signature 
     function mintKey(
         address profileContractAddress,
         uint256 profileTokenId,
         uint256 spaceshipTokenId,
         uint256 keyTokenId,
         bytes memory signature
-    ) external payable {
+    ) external payable virtual notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyMintParams(
                 profileContractAddress,
@@ -175,12 +246,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
             revert InvalidSignature();
         }
 
-        if (
-            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
-            msg.sender
-        ) {
-            revert OnlyNFTOwner();
-        }
+        _checkNFTOwnership(profileContractAddress, profileTokenId);
 
         address nftTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
@@ -195,16 +261,17 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
 
         User storage user = _userStatus[msg.sender];
-        if (msg.value > getMaxContributionPerMint(user.mintCount)) {
+        if (msg.value > _getMaxContributionPerMint(user.mintCount)) {
             revert ExceedMaxContributionPerMint();
         }
         user.contribution += uint128(msg.value);
         user.mintCount += 1;
+        currentTotalContribution += msg.value;
 
         if (user.contribution > maxContributionPerUser) {
             revert ExceedMaxContributionPerUser();
         }
-        if (address(this).balance > maxTotalContribution) {
+        if (currentTotalContribution > maxTotalContribution) {
             revert ExceedMaxTotalContribution();
         }
 
@@ -219,13 +286,14 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         keyUniverse1.mint(spaceshipTBA, keyTokenId);
     }
 
+    /// @dev mints multiple keys at once under the Spaceship TBA
     function batchMintKey(
         address profileContractAddress,
         uint256 profileTokenId,
         uint256 spaceshipTokenId,
         uint256[] memory keyTokenIds,
         bytes memory signature
-    ) external payable {
+    ) external payable virtual notDuringRefundPeriod sendFundToVault {
         address signer = getSigner(
             KeyBatchMintParams(
                 profileContractAddress,
@@ -241,12 +309,7 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
             revert InvalidSignature();
         }
 
-        if (
-            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
-            msg.sender
-        ) {
-            revert OnlyNFTOwner();
-        }
+        _checkNFTOwnership(profileContractAddress, profileTokenId);
 
         address nftTBA = tokenBoundRegistry.account(
             address(tokenBoundImplementation),
@@ -264,18 +327,19 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         User storage user = _userStatus[msg.sender];
         if (
             msg.value >
-            getMaxContributionPerBatchMint(user.mintCount, keyTokenIdsLength)
+            _getMaxContributionPerBatchMint(user.mintCount, keyTokenIdsLength)
         ) {
             revert ExceedMaxContributionPerMint();
         }
 
         user.contribution += uint128(msg.value);
         user.mintCount += uint128(keyTokenIdsLength);
+        currentTotalContribution += msg.value;
 
         if (user.contribution > maxContributionPerUser) {
             revert ExceedMaxContributionPerUser();
         }
-        if (address(this).balance > maxTotalContribution) {
+        if (currentTotalContribution > maxTotalContribution) {
             revert ExceedMaxTotalContribution();
         }
 
@@ -292,10 +356,13 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         }
     }
 
-    function refund() external {
-        if (!isRefundEnabled) {
-            revert RefundNotEnabled();
-        }
+    /* ============ Emergency Functions ============ */
+
+    /// @dev receiving ether is available only when isRefundEnabled is true
+    receive() external payable virtual onlyDuringRefundPeriod {}
+
+    /// @dev refund is available only when isRefundEnabled is true
+    function refund() external virtual onlyDuringRefundPeriod {
         User storage user = _userStatus[msg.sender];
         payable(msg.sender).transfer(user.contribution);
         emit Refund(msg.sender, user.contribution);
@@ -304,9 +371,9 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
 
     /* ============ Internal Functions ============ */
 
-    function getMaxContributionPerMint(
+    function _getMaxContributionPerMint(
         uint256 currentMintCount
-    ) internal view returns (uint128) {
+    ) internal view virtual returns (uint128) {
         if (maxContributionSchedulePerMint.length == 0) {
             return type(uint128).max;
         }
@@ -321,10 +388,10 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         return maxContributionSchedulePerMint[currentMintCount];
     }
 
-    function getMaxContributionPerBatchMint(
+    function _getMaxContributionPerBatchMint(
         uint256 currentMintCount,
         uint256 amount
-    ) internal view returns (uint128) {
+    ) internal view virtual returns (uint128) {
         if (maxContributionSchedulePerMint.length == 0) {
             return type(uint128).max;
         }
@@ -344,24 +411,46 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         return maxContribution;
     }
 
+    /// @dev check if the user owns the NFT
+    /// this may be upgraded in the future to support delegate.cash
+    function _checkNFTOwnership(
+        address profileContractAddress,
+        uint256 profileTokenId
+    ) internal virtual {
+        if (
+            IERC721(profileContractAddress).ownerOf(profileTokenId) !=
+            msg.sender
+        ) {
+            revert OnlyNFTOwner();
+        }
+    }
+
+    function _authorizeUpgrade(
+        address
+    ) internal virtual override onlyRole(DEFAULT_ADMIN_ROLE) {}
+
     /* ============ View Functions ============ */
 
     function DOMAIN_SEPARATOR() external view virtual returns (bytes32) {
         return _domainSeparatorV4();
     }
 
-    function getUserContribution(address user) external view returns (uint128) {
+    function getUserContribution(
+        address user
+    ) external view virtual returns (uint128) {
         return _userStatus[user].contribution;
     }
 
-    function getUserMintCount(address user) external view returns (uint128) {
+    function getUserMintCount(
+        address user
+    ) external view virtual returns (uint128) {
         return _userStatus[user].mintCount;
     }
 
     function getSigner(
         KeyMintParams memory keyMintParams,
         bytes memory signature
-    ) public view returns (address) {
+    ) public view virtual returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 KEY_MINT_PARAMS_TYPEHASH,
@@ -374,27 +463,27 @@ contract KeyMinterUniverse1 is AccessControl, EIP712, Error {
         );
         bytes32 digest = _hashTypedDataV4(structHash);
 
-        (address signer, ) = ECDSA.tryRecover(digest, signature);
+        (address signer, ) = ECDSAUpgradeable.tryRecover(digest, signature);
         return signer;
     }
 
     function getSigner(
         KeyBatchMintParams memory keyBatchMintParams,
         bytes memory signature
-    ) public view returns (address) {
+    ) public view virtual returns (address) {
         bytes32 structHash = keccak256(
             abi.encode(
                 KEY_BATCH_MINT_PARAMS_TYPEHASH,
                 keyBatchMintParams.profileContractAddress,
                 keyBatchMintParams.profileTokenId,
                 keyBatchMintParams.spaceshipTokenId,
-                keyBatchMintParams.keyTokenIds,
+                keccak256(abi.encodePacked(keyBatchMintParams.keyTokenIds)),
                 keyBatchMintParams.contribution
             )
         );
         bytes32 digest = _hashTypedDataV4(structHash);
 
-        (address signer, ) = ECDSA.tryRecover(digest, signature);
+        (address signer, ) = ECDSAUpgradeable.tryRecover(digest, signature);
         return signer;
     }
 }
